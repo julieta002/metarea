@@ -5,125 +5,182 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Traductor METAREA VI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
-/* VOICE: práctico, de mesa de cartas: claro y directo, para leer antes de zarpar
-   IDEA: el boletín impreso de radio costera, con su traducción anotada al lado
-   PICTURE: el traductor mismo, con una rosa de los vientos por zona que muestra la rolada
-   COLOUR and TYPE: blanco, tinta, azul de río profundo dominante, rojo y amarillo de bandera de señales; Barlow Condensed + Barlow
-   LAYOUT: banda azul con el traductor arriba, informe debajo, después glosario buscable, escalas y links */
+/* VOICE: sereno y prolijo, como un kit de interfaz plano: aire, líneas finas, nada recargado
+   IDEA: una "one page" náutica: barra de menú, encabezado con foto difuminada del río al atardecer, tarjetas planas tipo widget de clima
+   PICTURE: el encabezado difuminado con el velero y el traductor justo debajo; cada zona es una tarjeta con la fuerza grande y la rosa de los vientos
+   COLOUR and TYPE: verde agua #7fcab9 dominante, gris pizarra #3b3f42, blanco y gris claro; Lato 300/400/700
+   LAYOUT: menú, encabezado, traductor, tres íconos, informe en grilla de tarjetas, glosario, banda verde con escalas, pie con fuentes */
 :root{color-scheme:light dark;
---bg:light-dark(#ffffff,#0c1620);--ink:light-dark(#0e1a24,#e6eef3);--mute:light-dark(#51606c,#9fb1bd);
---river:light-dark(#0b4f6c,#0f3f57);--riverInk:#f3f8fb;--line:light-dark(#d9e2e8,#22323f);
---card:light-dark(#f4f7f9,#132230);--red:light-dark(#c62828,#ff6b6b);--yel:#f2c230}
+--bg:light-dark(#ffffff,#24282b);--soft:light-dark(#eef1f3,#2d3236);--ink:light-dark(#3b3f42,#e8ecee);--mute:light-dark(#7d8589,#a3abb0);
+--teal:#7fcab9;--tealD:#5fb3a1;--slate:#3b3f42;--line:light-dark(#dfe4e7,#3d4448);--red:#e06b5f;--yel:#f2c230}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Barlow,system-ui,sans-serif;overflow-x:clip}
-h1,h2,h3{font-family:"Barlow Condensed",Barlow,sans-serif;line-height:1.05;text-wrap:balance;margin:0}
-h1{font-size:clamp(32px,5vw,48px)}h2{font-size:32px;margin-bottom:12px}h3{font-size:22px}
-.band{padding:clamp(28px,4vw,64px) max(5vw,16px)}
-.wrap{max-width:1240px;margin:0 auto}
-.top{background:var(--river);color:var(--riverInk)}
-.top p{color:#cfe2ec;max-width:68ch;margin:8px 0 20px}
-.bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
-.flags{display:flex;gap:4px}.flags i{width:22px;height:14px;display:block}
-.lang{display:flex;gap:6px}.lang button{min-height:40px;padding:0 14px;background:transparent;color:var(--riverInk);border:2px solid #5d93ad}.lang button[aria-pressed=true]{background:var(--riverInk);color:#0b4f6c;border-color:var(--riverInk)}
-textarea{width:100%;min-height:200px;font:15px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:14px;border-radius:10px;border:2px solid #2f7393;background:#062f42;color:#e8f3f8;resize:vertical}
-textarea:focus,button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
-.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
-button{font:600 16px Barlow,sans-serif;min-height:44px;padding:0 18px;border-radius:10px;border:0;cursor:pointer}
-.go{background:var(--yel);color:#1a1400}.ghost{background:transparent;color:var(--riverInk);border:2px solid #5d93ad}
-select{font:16px Barlow,sans-serif;min-height:44px;padding:0 10px;border-radius:10px;border:2px solid #5d93ad;background:#062f42;color:#e8f3f8;max-width:100%}
-.tz{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
-.small{font-size:13px;color:#b9d3e0}
-#rep{display:grid;gap:16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:16px}
-.card.solo{grid-template-columns:minmax(0,1fr)}
-.card h3{margin-bottom:6px}.card p{margin:6px 0}
-.raw{font:13px/1.45 ui-monospace,Menlo,monospace;color:var(--mute);overflow-wrap:anywhere;margin-top:8px}
-.pill{display:inline-block;font-weight:600;font-size:14px;padding:3px 10px;border-radius:99px;margin:6px 6px 0 0}
-.p0{background:#e3eef5;color:#24506a}.p1{background:#d9f2e3;color:#145c34}.p2{background:#fff1c2;color:#6b5000}.p3{background:#ffd9d6;color:#8a1a14}
-.rose{width:130px;height:130px}
-.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.chip{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:14px;background:var(--bg)}
-.chip b{font-family:ui-monospace,Menlo,monospace}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 Lato,system-ui,sans-serif;font-weight:400;overflow-x:clip}
+h1,h2,h3{font-weight:300;margin:0;line-height:1.1;text-wrap:balance}
+a{color:inherit}
+.wrap{max-width:1140px;margin:0 auto;padding:0 max(4vw,16px)}
+/* menú */
+nav{position:sticky;top:0;z-index:5;background:#3f8f7e;color:#fff}
+nav .wrap{display:flex;align-items:center;gap:8px;min-height:52px;flex-wrap:wrap}
+.brand{font-weight:700;font-size:15px;margin-right:auto;padding:12px 0}
+.menu{display:flex;overflow-x:auto;gap:2px}
+.menu a{text-decoration:none;font-size:14px;padding:14px 12px;white-space:nowrap;color:#fff}
+.menu a:hover{background:#357a6b}
+.lang{display:flex;gap:4px}.lang button{min-height:36px;padding:0 10px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.7);font-size:13px}
+.lang button[aria-pressed=true]{background:#fff;color:#2f6f63}
+/* encabezado */
+.hero{position:relative;min-height:340px;display:grid;place-items:center;text-align:center;color:#fff;overflow:hidden;
+background:linear-gradient(180deg,#d8c2b6 0%,#b7b3ad 28%,#7f9496 52%,#4e6164 72%,#2f3a3d 100%)}
+.hero svg{position:absolute;inset:0;width:100%;height:100%;filter:blur(5px)}
+.hero .in{position:relative;padding:48px 16px}
+.kick{font-size:14px;font-weight:700;opacity:.9}
+.boxt{display:inline-block;background:rgba(40,45,48,.82);padding:12px 26px;margin:14px 0;font-size:clamp(26px,4.4vw,40px);font-weight:300}
+.hero p{max-width:56ch;margin:0 auto;font-size:15px;opacity:.95}
+/* traductor */
+.tool{position:relative;margin-top:-36px;z-index:2}
+.panel{background:var(--bg);box-shadow:0 10px 30px rgba(0,0,0,.12);padding:22px}
+.panel .bar{background:#3f8f7e;color:#fff;margin:-22px -22px 18px;padding:12px 22px;font-size:14px;font-weight:700}
+label.s{font-size:13px;color:var(--mute);display:block;margin-bottom:6px}
+textarea{width:100%;min-height:180px;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:14px;border:1px solid var(--line);background:var(--soft);color:var(--ink);resize:vertical;border-radius:0}
+select{font:15px Lato,sans-serif;min-height:44px;padding:0 10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);max-width:100%;border-radius:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+button{font:400 15px Lato,sans-serif;min-height:44px;padding:0 18px;border:0;border-radius:0;cursor:pointer}
+.go{background:#3f8f7e;color:#fff;font-weight:700}.go:hover{background:#357a6b}
+.ghost{background:var(--soft);color:var(--ink)}
+textarea:focus,button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--tealD);outline-offset:2px}
+#msg{font-size:13px;color:var(--mute)}
+/* íconos */
+.feat{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:28px;padding:48px 0;text-align:center}
+.feat svg{width:64px;height:64px}
+.feat h3{font-size:15px;font-weight:700;margin:12px 0 6px}.feat p{margin:0;font-size:14px;color:var(--mute)}
+section{padding:56px 0}
+.sh{text-align:center;margin-bottom:28px}.sh h2{font-size:26px}.sh p{color:var(--mute);font-size:14px;margin:6px 0 0}
+.soft{background:var(--soft)}
+/* tarjetas de informe */
+#rep{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:18px}
+.card{background:var(--bg);color:var(--ink);--rl:var(--line);--rm:var(--mute);--rf:var(--tealD);--ra:var(--yel);display:flex;flex-direction:column}
+.card.wide{grid-column:1/-1}
+.card.v0{background:#3f8f7e;color:#fff;--rl:rgba(255,255,255,.55);--rm:rgba(40,45,48,.55);--rf:#fff;--ra:#2f6f63}
+.card.v2{background:var(--slate);color:#eef1f2;--rl:rgba(255,255,255,.3);--rm:rgba(255,255,255,.45);--rf:var(--teal);--ra:var(--yel)}
+.ch{padding:14px 18px 0;text-align:center}.ch h3{font-size:15px;font-weight:700}
+.cb{display:flex;justify-content:center;align-items:center;gap:20px;padding:12px 18px}
+.big b{display:block;font-size:56px;font-weight:300;line-height:1}.big span{font-size:12px;opacity:.8}
+.ct{padding:0 18px 18px;font-size:15px}.ct p{margin:8px 0}
+.card .raw{font:12px/1.45 ui-monospace,Menlo,monospace;opacity:.7;overflow-wrap:anywhere;margin-top:10px;padding-top:10px;border-top:1px solid var(--rl)}
+.rose{width:120px;height:120px}
+.pill{display:inline-block;font-weight:700;font-size:13px;padding:3px 10px;margin:6px 6px 0 0;background:rgba(255,255,255,.92);color:#3b3f42}
+.p0{border-left:4px solid #8aa9b8}.p1{border-left:4px solid #3fae7a}.p2{border-left:4px solid #e3b02f}.p3{border-left:4px solid var(--red)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{border:1px solid var(--line);padding:5px 10px;font-size:13px;background:var(--soft)}.chip b{font-family:ui-monospace,Menlo,monospace}
 .empty{color:var(--mute)}.note{font-size:13px;color:var(--mute)}
-.gl-tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
-input[type=search]{font:16px Barlow,sans-serif;min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);flex:1 1 240px}
-.cat{background:var(--card);color:var(--ink);border:1px solid var(--line)}.cat[aria-pressed=true]{background:var(--river);color:var(--riverInk);border-color:var(--river)}
-table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-size:14px;color:var(--mute);font-weight:600}
-td.k{font:600 15px ui-monospace,Menlo,monospace}td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.ex{font:13px ui-monospace,Menlo,monospace;color:var(--mute)}
-.alt{background:var(--card)}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:28px}
-.links a{color:var(--ink);font-weight:600}.links li{margin:8px 0}
-pre,.scroll{overflow-x:auto}code{overflow-wrap:anywhere}
-@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--mute);font-family:Barlow,sans-serif;font-weight:500}.stack td:empty{display:none}
-.card{grid-template-columns:minmax(0,1fr)}.rose{justify-self:start}}
+.card .rose text{fill:currentColor;opacity:.75}
+/* glosario */
+.gl-tools{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+input[type=search]{font:16px Lato,sans-serif;min-height:44px;padding:0 14px;border:1px solid var(--line);background:var(--soft);color:var(--ink);flex:1 1 240px;border-radius:0}
+.cat{background:var(--soft);color:var(--ink);font-size:14px}.cat[aria-pressed=true]{background:#3f8f7e;color:#fff}
+table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--mute);font-weight:700}
+td.k{font:700 14px ui-monospace,Menlo,monospace}td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ex{font:12px ui-monospace,Menlo,monospace;color:var(--mute)}
+/* banda de escalas */
+.tealband{background:#5fb3a1}.tealband .sh h2,.tealband .sh p{color:#fff}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:20px}
+.box{background:var(--bg);padding:18px}.box h3{font-size:18px;font-weight:700;margin-bottom:10px}
+/* pie */
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:24px;text-align:center}
+.links a{text-decoration:none;display:block}.links .ic{width:56px;height:56px;border:1px solid var(--mute);border-radius:50%;display:grid;place-items:center;margin:0 auto 10px;color:var(--mute)}
+.links b{display:block;font-size:15px}.links span{font-size:13px;color:var(--mute)}
+footer{background:var(--slate);color:#c9cfd2;font-size:13px;text-align:center;padding:18px 16px}
+.scroll{overflow-x:auto}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--mute);font-family:Lato,sans-serif;font-weight:400}.stack td:empty{display:none}
+.menu{display:none}.hero{min-height:280px}}
 @media(prefers-reduced-motion:no-preference){.card{animation:in .35s ease both}@keyframes in{from{opacity:0;transform:translateY(6px)}}}
 </style><script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script></head>
 <body>
-<section class="band top"><div class="wrap">
-  <div class="bar">
-    <div class="flags" aria-hidden="true"><i style="background:#c62828"></i><i style="background:#f2c230"></i><i style="background:#fff"></i><i style="background:#1d4fa0"></i></div>
-    <div class="lang" role="group" aria-label="Idioma / Language"><button data-lang="es">ES</button><button data-lang="en">EN</button></div>
-  </div>
-  <h1 data-t="title"></h1>
-  <p data-t="intro"></p>
-  <label for="txt" class="small" data-t="label"></label>
-  <textarea id="txt" spellcheck="false"></textarea>
-  <div class="tz"><label for="tz" class="small" data-t="tzLabel"></label><select id="tz"></select></div>
-  <div class="row">
-    <button class="go" id="go" data-t="go"></button>
-    <button class="ghost" id="ejEs" data-t="exEs"></button>
-    <button class="ghost" id="ejEn" data-t="exEn"></button>
-    <button class="ghost" id="cp" data-t="copy"></button>
-    <span class="small" id="msg" role="status"></span>
-  </div>
-</div></section>
+<nav><div class="wrap">
+  <span class="brand">METAREA VI</span>
+  <div class="menu"><a href="#traductor" data-t="n1"></a><a href="#informe" data-t="n2"></a><a href="#glosario" data-t="n3"></a><a href="#escalas" data-t="n4"></a><a href="#fuentes" data-t="n5"></a></div>
+  <div class="lang" role="group" aria-label="Idioma / Language"><button data-lang="es">ES</button><button data-lang="en">EN</button></div>
+</div></nav>
 
-<section class="band"><div class="wrap">
-  <h2 data-t="repH"></h2>
+<header class="hero">
+  <svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <ellipse cx="820" cy="170" rx="140" ry="60" fill="#f3d9c4" opacity=".55"/>
+    <rect x="0" y="238" width="1200" height="8" fill="#3d4a4d" opacity=".6"/>
+    <g fill="#33403f" opacity=".55"><rect x="60" y="212" width="18" height="30"/><rect x="90" y="200" width="26" height="42"/><rect x="130" y="216" width="14" height="26"/><rect x="980" y="206" width="22" height="36"/><rect x="1010" y="194" width="30" height="48"/><rect x="1050" y="214" width="16" height="28"/></g>
+    <g fill="#263133" opacity=".8"><path d="M560 300 L640 300 L630 314 L572 314 Z"/><path d="M600 296 L600 170 L652 290 Z"/><path d="M596 292 L596 192 L560 290 Z" opacity=".8"/></g>
+    <rect x="0" y="246" width="1200" height="160" fill="#2c3739" opacity=".45"/>
+    <rect x="300" y="320" width="600" height="4" fill="#f3d9c4" opacity=".25"/>
+  </svg>
+  <div class="in">
+    <div class="kick" data-t="kicker"></div>
+    <h1 class="boxt" data-t="title"></h1>
+    <p data-t="intro"></p>
+  </div>
+</header>
+
+<div class="wrap tool" id="traductor">
+  <div class="panel">
+    <div class="bar" data-t="panelH"></div>
+    <label for="txt" class="s" data-t="label"></label>
+    <textarea id="txt" spellcheck="false"></textarea>
+    <div class="row"><label for="tz" class="s" style="margin:0" data-t="tzLabel"></label><select id="tz"></select></div>
+    <div class="row">
+      <button class="go" id="go" data-t="go"></button>
+      <button class="ghost" id="ejEs" data-t="exEs"></button>
+      <button class="ghost" id="ejEn" data-t="exEn"></button>
+      <button class="ghost" id="cp" data-t="copy"></button>
+      <span id="msg" role="status"></span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap feat">
+  <div><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="32" cy="32" r="30"/><circle cx="32" cy="32" r="14"/><path d="M32 14v6M32 44v6M14 32h6M44 32h6"/><path d="M32 22l4 10-4 10-4-10z" fill="var(--teal)" stroke="none"/></svg><h3 data-t="f1h"></h3><p data-t="f1t"></p></div>
+  <div><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="32" cy="32" r="30"/><circle cx="32" cy="32" r="15"/><path d="M32 23v9l6 5" stroke="var(--tealD)" stroke-width="2"/></svg><h3 data-t="f2h"></h3><p data-t="f2t"></p></div>
+  <div><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="32" cy="32" r="30"/><path d="M20 22h11a3 3 0 013 3v19a3 3 0 00-3-3H20zM44 22H35v22a3 3 0 013-3h6z"/><path d="M23 28h7M23 33h7M38 28h3M38 33h3" stroke="var(--tealD)"/></svg><h3 data-t="f3h"></h3><p data-t="f3t"></p></div>
+</div>
+
+<section class="soft" id="informe"><div class="wrap">
+  <div class="sh"><h2 data-t="repH"></h2><p data-t="repSub"></p></div>
   <div id="rep"></div>
-  <p class="note" style="margin-top:14px" data-t="repNote"></p>
+  <p class="note" style="margin-top:16px;text-align:center" data-t="repNote"></p>
 </div></section>
 
-<section class="band alt"><div class="wrap">
-  <h2 data-t="glH"></h2>
+<section id="glosario"><div class="wrap">
+  <div class="sh"><h2 data-t="glH"></h2><p data-t="glSub"></p></div>
   <div class="gl-tools"><input type="search" id="q"></div>
   <div class="gl-tools" id="cats"></div>
   <table class="stack"><thead><tr><th data-t="thTerm"></th><th data-t="thMean"></th><th data-t="thEx"></th></tr></thead><tbody id="gl"></tbody></table>
   <p class="note" data-t="glNote"></p>
 </div></section>
 
-<section class="band"><div class="wrap grid2">
-  <div>
-    <h2 data-t="bfH"></h2>
-    <div class="scroll"><table><thead><tr><th>F</th><th data-t="thName"></th><th data-t="thKt"></th><th>km/h</th><th data-t="thWater"></th></tr></thead><tbody id="bf"></tbody></table></div>
-    <p class="note" data-t="bfNote"></p>
-  </div>
-  <div>
-    <h2 data-t="dgH"></h2>
-    <div class="scroll"><table><thead><tr><th>#</th><th>Español</th><th>English</th><th data-t="thWave"></th></tr></thead><tbody id="dg"></tbody></table></div>
-    <h2 style="margin-top:28px" data-t="visH"></h2>
-    <table><tbody id="vt"></tbody></table>
-    <p class="note" data-t="nmNote"></p>
+<section class="tealband" id="escalas"><div class="wrap">
+  <div class="sh"><h2 data-t="scH"></h2><p data-t="scSub"></p></div>
+  <div class="grid2">
+    <div class="box"><h3 data-t="bfH"></h3><div class="scroll"><table><thead><tr><th>F</th><th data-t="thName"></th><th data-t="thKt"></th><th>km/h</th><th data-t="thWater"></th></tr></thead><tbody id="bf"></tbody></table></div><p class="note" data-t="bfNote"></p></div>
+    <div class="box"><h3 data-t="dgH"></h3><div class="scroll"><table><thead><tr><th>#</th><th>Español</th><th>English</th><th data-t="thWave"></th></tr></thead><tbody id="dg"></tbody></table></div>
+      <h3 style="margin-top:22px" data-t="visH"></h3><table><tbody id="vt"></tbody></table><p class="note" data-t="nmNote"></p></div>
   </div>
 </div></section>
 
-<section class="band alt"><div class="wrap links">
-  <h2 data-t="linksH"></h2>
-  <ul>
-    <li><a href="https://www.smn.gob.ar/">Servicio Meteorológico Nacional (SMN)</a>: <span data-t="l1"></span></li>
-    <li><a href="https://community.wmo.int/node/36305">METAREA VI · WMO / OMM</a>: <span data-t="l2"></span></li>
-    <li><a href="https://www.hidro.gov.ar/ModelosPronosticos.asp">Servicio de Hidrografía Naval</a>: <span data-t="l3"></span></li>
-  </ul>
-  <p class="note" data-t="linksNote"></p>
+<section class="soft" id="fuentes"><div class="wrap">
+  <div class="sh"><h2 data-t="linksH"></h2><p data-t="linksNote"></p></div>
+  <div class="links">
+    <a href="https://www.smn.gob.ar/"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 16a4 4 0 010-8 5 5 0 019.6-1A4 4 0 1118 16z"/></svg></div><b>SMN</b><span data-t="l1"></span></a>
+    <a href="https://community.wmo.int/node/36305"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div><b>WMO / OMM</b><span data-t="l2"></span></a>
+    <a href="https://www.hidro.gov.ar/ModelosPronosticos.asp"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14c3 0 3-2 5-2s2 2 5 2 3-2 5-2 2 2 5 2M2 19c3 0 3-2 5-2s2 2 5 2 3-2 5-2 2 2 5 2M12 3v7"/></svg></div><b>Hidrografía Naval</b><span data-t="l3"></span></a>
+  </div>
 </div></section>
+
+<footer data-t="foot"></footer>
 
 <script>
 {
+
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const pad=n=>String(n).padStart(2,'0');
@@ -131,8 +188,8 @@ let lang='es',tzv='-3';
 try{lang=localStorage.getItem('metarea-lang')||(/^es/i.test(navigator.language)?'es':'en');tzv=localStorage.getItem('metarea-tz')||'-3'}catch(e){}
 
 const S={
-es:{title:'Traductor de boletines METAREA VI',intro:'Pegá el boletín marítimo tal como viene, en <b>español o en inglés</b> (mayúsculas y abreviaturas incluidas), y tocá <b>Armar informe</b>. Lo traduce zona por zona: viento en Beaufort, nudos y km/h, roladas, horario UTC pasado a tu hora local, fenómenos, visibilidad y estado del mar.',label:'Boletín (el que aparece al abrir es un ejemplo)',tzLabel:'Mostrar horarios en:',go:'Armar informe',exEs:'Ejemplo en español',exEn:'Ejemplo en inglés',copy:'Copiar informe',repH:'Informe',repNote:'La lectura para veleros es orientativa (pensada para un velero chico en salida recreativa) y esta página no es un pronóstico oficial: compará siempre con el último boletín, el viento medido en el lugar, el estado del agua y el criterio del patrón.',glH:'Glosario',glPh:'Buscar: BACK, VEERING, WKN, marejada, visibilidad…',thTerm:'Término',thMean:'Qué significa',thEx:'Ejemplo',glNote:'Abreviaturas habituales en boletines marítimos en español e inglés; cada servicio puede usar variantes. Si aparece una que no está, se lista en "Palabras sin traducir".',bfH:'Escala Beaufort',thName:'Nombre',thKt:'Nudos',thWater:'En el agua',bfNote:'Viento medio sostenido (no ráfagas). 1 nudo = 1,852 km/h.',dgH:'Estado del mar (Douglas)',thWave:'Altura de ola',visH:'Visibilidad',nmNote:'MN = milla náutica = 1852 m.',linksH:'Dónde leer el boletín',l1:'emite el boletín METAREA VI en español e inglés y los pronósticos para el Río de la Plata (buscá la sección de pronóstico marítimo).',l2:'cobertura oficial del área que pronostica Argentina.',l3:'marea, onda de tormenta y altura del Río de la Plata.',linksNote:'La página no puede descargar el boletín sola (el navegador bloquea pedidos a otros sitios): abrilo en la fuente, copiá el texto y pegalo arriba.',dev:'Hora de este dispositivo',all:'Todo'},
-en:{title:'METAREA VI bulletin translator',intro:'Paste the marine bulletin as it comes, in <b>English or Spanish</b> (capitals and abbreviations included), and tap <b>Build report</b>. It decodes it area by area: wind in Beaufort, knots and km/h, backing and veering, UTC times converted to your local time, weather, visibility and sea state.',label:'Bulletin (the one shown on load is an example)',tzLabel:'Show times in:',go:'Build report',exEs:'Spanish example',exEn:'English example',copy:'Copy report',repH:'Report',repNote:'The sailing note is only a rough guide (for a small yacht on a day sail) and this page is not an official forecast: always check the latest bulletin, the locally measured wind, the sea state and the skipper\'s judgement.',glH:'Glossary',glPh:'Search: BACK, VEERING, WKN, rough, visibility…',thTerm:'Term',thMean:'Meaning',thEx:'Example',glNote:'Common abbreviations in Spanish and English marine bulletins; each service may use variants. Anything not listed shows up under "Untranslated words".',bfH:'Beaufort scale',thName:'Name',thKt:'Knots',thWater:'On the water',bfNote:'Mean sustained wind (not gusts). 1 knot = 1.852 km/h.',dgH:'Sea state (Douglas)',thWave:'Wave height',visH:'Visibility',nmNote:'NM = nautical mile = 1852 m.',linksH:'Where to read the bulletin',l1:'issues the METAREA VI bulletin in Spanish and English, and forecasts for the Río de la Plata (look for the marine forecast section).',l2:'official coverage of the area forecast by Argentina.',l3:'tides, storm surge and water level of the Río de la Plata.',linksNote:'This page cannot download the bulletin by itself (the browser blocks requests to other sites): open it at the source, copy the text and paste it above.',dev:'This device\'s time',all:'All'}};
+es:{title:'Traductor de boletines METAREA VI',intro:'Pegá el boletín marítimo tal como viene, en <b>español o en inglés</b> (mayúsculas y abreviaturas incluidas), y tocá <b>Armar informe</b>. Lo traduce zona por zona: viento en Beaufort, nudos y km/h, roladas, horario UTC pasado a tu hora local, fenómenos, visibilidad y estado del mar.',label:'Boletín (el que aparece al abrir es un ejemplo)',tzLabel:'Mostrar horarios en:',go:'Armar informe',exEs:'Ejemplo en español',exEn:'Ejemplo en inglés',copy:'Copiar informe',repH:'Informe',repNote:'La lectura para veleros es orientativa (pensada para un velero chico en salida recreativa) y esta página no es un pronóstico oficial: compará siempre con el último boletín, el viento medido en el lugar, el estado del agua y el criterio del patrón.',glH:'Glosario',glPh:'Buscar: BACK, VEERING, WKN, marejada, visibilidad…',thTerm:'Término',thMean:'Qué significa',thEx:'Ejemplo',glNote:'Abreviaturas habituales en boletines marítimos en español e inglés; cada servicio puede usar variantes. Si aparece una que no está, se lista en "Palabras sin traducir".',bfH:'Escala Beaufort',thName:'Nombre',thKt:'Nudos',thWater:'En el agua',bfNote:'Viento medio sostenido (no ráfagas). 1 nudo = 1,852 km/h.',dgH:'Estado del mar (Douglas)',thWave:'Altura de ola',visH:'Visibilidad',nmNote:'MN = milla náutica = 1852 m.',linksH:'Dónde leer el boletín',l1:'emite el boletín METAREA VI en español e inglés y los pronósticos para el Río de la Plata (buscá la sección de pronóstico marítimo).',l2:'cobertura oficial del área que pronostica Argentina.',l3:'marea, onda de tormenta y altura del Río de la Plata.',linksNote:'La página no puede descargar el boletín sola (el navegador bloquea pedidos a otros sitios): abrilo en la fuente, copiá el texto y pegalo arriba.',dev:'Hora de este dispositivo',all:'Todo',n1:'Traductor',n2:'Informe',n3:'Glosario',n4:'Escalas',n5:'Fuentes',kicker:'Río de la Plata · Atlántico Sur · Antártida',panelH:'Pegá tu boletín',f1h:'Zona por zona',f1t:'Viento en Beaufort, nudos y km/h, roladas, fenómenos y estado del mar.',f2h:'Tu hora local',f2t:'Los horarios UTC del boletín, pasados al huso horario que elijas.',f3h:'Español e inglés',f3t:'Lee boletines en los dos idiomas, con glosario bilingüe.',repSub:'Cada zona del boletín, traducida.',glSub:'Abreviaturas de boletines marítimos en español e inglés.',scH:'Escalas',scSub:'Beaufort, estado del mar y visibilidad.',foot:'Herramienta de lectura · No es un pronóstico oficial · Boletines: Servicio Meteorológico Nacional',big:'Beaufort al final'},
+en:{title:'METAREA VI bulletin translator',intro:'Paste the marine bulletin as it comes, in <b>English or Spanish</b> (capitals and abbreviations included), and tap <b>Build report</b>. It decodes it area by area: wind in Beaufort, knots and km/h, backing and veering, UTC times converted to your local time, weather, visibility and sea state.',label:'Bulletin (the one shown on load is an example)',tzLabel:'Show times in:',go:'Build report',exEs:'Spanish example',exEn:'English example',copy:'Copy report',repH:'Report',repNote:'The sailing note is only a rough guide (for a small yacht on a day sail) and this page is not an official forecast: always check the latest bulletin, the locally measured wind, the sea state and the skipper\'s judgement.',glH:'Glossary',glPh:'Search: BACK, VEERING, WKN, rough, visibility…',thTerm:'Term',thMean:'Meaning',thEx:'Example',glNote:'Common abbreviations in Spanish and English marine bulletins; each service may use variants. Anything not listed shows up under "Untranslated words".',bfH:'Beaufort scale',thName:'Name',thKt:'Knots',thWater:'On the water',bfNote:'Mean sustained wind (not gusts). 1 knot = 1.852 km/h.',dgH:'Sea state (Douglas)',thWave:'Wave height',visH:'Visibility',nmNote:'NM = nautical mile = 1852 m.',linksH:'Where to read the bulletin',l1:'issues the METAREA VI bulletin in Spanish and English, and forecasts for the Río de la Plata (look for the marine forecast section).',l2:'official coverage of the area forecast by Argentina.',l3:'tides, storm surge and water level of the Río de la Plata.',linksNote:'This page cannot download the bulletin by itself (the browser blocks requests to other sites): open it at the source, copy the text and paste it above.',dev:'This device\'s time',all:'All',n1:'Translator',n2:'Report',n3:'Glossary',n4:'Scales',n5:'Sources',kicker:'Río de la Plata · South Atlantic · Antarctica',panelH:'Paste your bulletin',f1h:'Area by area',f1t:'Wind in Beaufort, knots and km/h, backing and veering, weather and sea state.',f2h:'Your local time',f2t:'The bulletin\'s UTC times converted to the time zone you choose.',f3h:'English and Spanish',f3t:'Reads bulletins in both languages, with a bilingual glossary.',repSub:'Each area of the bulletin, decoded.',glSub:'Marine bulletin abbreviations in English and Spanish.',scH:'Scales',scSub:'Beaufort, sea state and visibility.',foot:'Reading aid · Not an official forecast · Bulletins: Argentine National Weather Service (SMN)',big:'Beaufort, final'}};
 
 const EJ={es:`AVISO DE TEMPORAL: AREA CENTRO OESTE: SECTOR W 6 BACK SECTOR S 8 CON RAFAGAS EL 24/1800 MAR GRUESA.
 SITUACION GENERAL: DEPRESION 984HPA 54S 40W MOV E WKN. CFNT 36S 58W 42S 62W MOV NE.
@@ -140,7 +197,7 @@ RIO DE LA PLATA INTERIOR: SECTOR W 3/4 BACK SECTOR S 5/6 CON RAFAGAS EL 24/2100 
 en:`GALE WARNING: AREA CENTRE WEST: WESTERLY 6 BACKING SOUTH 8 WITH GUSTS ON 24/1800. SEA ROUGH.
 SYNOPSIS: LOW 984HPA 54S 040W MOVING E 20KT WEAKENING. COLD FRONT 36S 058W 42S 062W MOVING NE.
 RIO DE LA PLATA INNER: WEST 3 TO 4 BACKING SOUTH 5 TO 6 WITH GUSTS FROM 24/2100. PROB OF SHOWERS. VIS GOOD TO MODERATE.
-DRAKE NORTH: NW 7 TO 8 VEERING W 9 LATER. SEA VERY ROUGH TO HIGH. WAVES 5 TO 7 M. VIS MODERATE OCNL POOR IN RAIN.`};
+DRAKE NORTH: W 7 TO 8 VEERING NW 9 LATER. SEA VERY ROUGH TO HIGH. WAVES 5 TO 7 M. VIS MODERATE OCNL POOR IN RAIN.`};
 
 const BF=[[0,'Calma','Calm','<1','<1','Espejo, sin olas','Sea like a mirror'],[1,'Ventolina','Light air','1–3','1–5','Rizos sin espuma','Ripples, no crests'],[2,'Flojito','Light breeze','4–6','6–11','Olitas que no rompen','Small wavelets'],[3,'Flojo','Gentle breeze','7–10','12–19','Algunas crestas rompen','Crests begin to break'],[4,'Bonancible','Moderate breeze','11–16','20–28','Borreguitos frecuentes','Frequent white horses'],[5,'Fresquito','Fresh breeze','17–21','29–38','Olas moderadas, mucha espuma','Moderate waves, many white horses'],[6,'Fresco','Strong breeze','22–27','39–49','Olas grandes, rociones','Large waves, some spray'],[7,'Frescachón','Near gale','28–33','50–61','Espuma en bandas','Foam blown in streaks'],[8,'Temporal','Gale','34–40','62–74','Olas altas, rompientes','Moderately high waves, crests break'],[9,'Temporal fuerte','Strong gale','41–47','75–88','Rociones reducen la visibilidad','Spray may reduce visibility'],[10,'Temporal duro','Storm','48–55','89–102','Mar blanca','Sea white with foam'],[11,'Temporal muy duro','Violent storm','56–63','103–117','Olas excepcionales','Exceptionally high waves'],[12,'Temporal huracanado','Hurricane force','64+','118+','Aire lleno de espuma','Air filled with foam and spray']];
 const KTB=[1,4,7,11,17,22,28,34,41,48,56,64];const kt2bf=k=>{let f=0;KTB.forEach((v,i)=>{if(k>=v)f=i+1});return f};
@@ -266,11 +323,11 @@ if(/AUMENTANDO|INCREASING/.test(bt))return T.up;if(/DISMINUYENDO|DECREASING|EASI
 if(/LUEGO|LATER|THEN/.test(bt))return T.lt;if(/TEMPO|TEMPORAR|PERIOD|OCNL|OCCASIONAL|OCASIONAL/.test(bt))return T.tm;return T.and}
 
 function rose(ws,bt){const c=65,r=50,pt=(deg,rr)=>[c+rr*Math.sin(deg*Math.PI/180),c-rr*Math.cos(deg*Math.PI/180)];
-let s=`<svg class="rose" viewBox="0 0 130 130" role="img" aria-label="${L()?'Rosa de los vientos':'Wind rose'}"><circle cx="65" cy="65" r="${r}" fill="none" stroke="var(--line)" stroke-width="2"/>`;
-[['N',0],['E',90],['S',180],[L()?'O':'W',270]].forEach(([l,d])=>{const [x,y]=pt(d,r+9);s+=`<text x="${x}" y="${y+4}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--mute)">${l}</text>`});
+let s=`<svg class="rose" viewBox="0 0 130 130" role="img" aria-label="${L()?'Rosa de los vientos':'Wind rose'}"><circle cx="65" cy="65" r="${r}" fill="none" stroke="var(--rl)" stroke-width="2"/>`;
+[['N',0],['E',90],['S',180],[L()?'O':'W',270]].forEach(([l,d])=>{const [x,y]=pt(d,r+9);s+=`<text x="${x}" y="${y+4}" text-anchor="middle" font-size="11" font-weight="600" >${l}</text>`});
 const ok=ws.filter(w=>w.d);
-if(ok.length>1){const a0=DIRS[ok[ok.length-2].d],a1=DIRS[ok[ok.length-1].d];let df=(a1-a0+360)%360;const ccw=/BACK/.test(bt)||(!/VEER/.test(bt)&&df>180);if(ccw&&df)df-=360;if(df){const [sx,sy]=pt(a0,r),[ex,ey]=pt(a1,r);s+=`<path d="M${sx} ${sy} A${r} ${r} 0 ${Math.abs(df)>180?1:0} ${df>0?1:0} ${ex} ${ey}" fill="none" stroke="var(--yel)" stroke-width="5" stroke-linecap="round"/>`}}
-ok.forEach((w,i)=>{const last=i===ok.length-1,col=last?'var(--red)':'var(--mute)';const [x1,y1]=pt(DIRS[w.d],r-2),[x2,y2]=pt(DIRS[w.d],10);const ang=DIRS[w.d]+180;const a=o=>{const rad=(ang+o)*Math.PI/180;return [x2-9*Math.sin(rad),y2+9*Math.cos(rad)]};const [ax,ay]=a(25),[bx,by]=a(-25);
+if(ok.length>1){const a0=DIRS[ok[ok.length-2].d],a1=DIRS[ok[ok.length-1].d];let df=(a1-a0+360)%360;const ccw=/BACK/.test(bt)||(!/VEER/.test(bt)&&df>180);if(ccw&&df)df-=360;if(df){const [sx,sy]=pt(a0,r),[ex,ey]=pt(a1,r);s+=`<path d="M${sx} ${sy} A${r} ${r} 0 ${Math.abs(df)>180?1:0} ${df>0?1:0} ${ex} ${ey}" fill="none" stroke="var(--ra)" stroke-width="5" stroke-linecap="round"/>`}}
+ok.forEach((w,i)=>{const last=i===ok.length-1,col=last?'var(--rf)':'var(--rm)';const [x1,y1]=pt(DIRS[w.d],r-2),[x2,y2]=pt(DIRS[w.d],10);const ang=DIRS[w.d]+180;const a=o=>{const rad=(ang+o)*Math.PI/180;return [x2-9*Math.sin(rad),y2+9*Math.cos(rad)]};const [ax,ay]=a(25),[bx,by]=a(-25);
 s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${last?4:3}" stroke-linecap="round"/><polygon points="${x2},${y2} ${ax},${ay} ${bx},${by}" fill="${col}"/>`});
 return s+'</svg>'}
 
@@ -291,8 +348,8 @@ if(sm){const g=w=>{let i=SEA_EN.indexOf(w);if(i<0)i=SEA_ES.indexOf(w);return i};
 const wv=t0.match(/\b(?:WAVES?|OLAS?|HS|ALTURA)\s+(?:DE\s+|OF\s+)?(\d+(?:[.,]\d+)?)\s*(?:(?:A|TO|-|\/)\s*(\d+(?:[.,]\d+)?))?\s*M\b/);if(wv)p+=(L()?` Olas de ${wv[1]}${wv[2]?' a '+wv[2]:''} m.`:` Waves ${wv[1]}${wv[2]?' to '+wv[2]:''} m.`);
 if(/SWELL|MAR DE FONDO/.test(t0))p+=L()?' Hay mar de fondo.':' Swell present.';
 if(!p&&!warn)return null;
-const ok=ws.some(w=>w.d);
-return `<article class="card${ok?'':' solo'}"><div><h3>${esc(name)}</h3>${warn?`<span class="pill p3">${L()?'Aviso vigente':'Warning in force'}: ${esc(warn)}</span>`:''}<p>${esc(p)}</p>${ws.length?verdict(ws,gust):''}<div class="raw">${esc(t0)}</div></div>${ok?rose(ws,bt):''}</article>`}
+const ok=ws.some(w=>w.d);const lw=ws[ws.length-1];const big=lw?(lw.fb!=null&&lw.fb!==lw.fa?lw.fa+'–'+lw.fb:String(lw.fa)):'';
+return `<article class="card z"><header class="ch"><h3>${esc(name)}</h3>${warn?`<span class="pill p3">${L()?'Aviso vigente':'Warning in force'}: ${esc(warn)}</span>`:''}</header>${big||ok?`<div class="cb">${big?`<div class="big"><b>${big}</b><span>${S[lang].big}</span></div>`:''}${ok?rose(ws,bt):''}</div>`:''}<div class="ct"><p>${esc(p)}</p>${ws.length?verdict(ws,gust):''}<div class="raw">${esc(t0)}</div></div></article>`}
 
 function dirAny(w){w=dirWords(w,false);return DIRS[w]!=null?w:null}
 function pos(lat,lon){const f=(s,dl)=>s.length>dl?`${+s.slice(0,s.length-2)}°${s.slice(-2)}′`:`${+s}°`;return `${f(lat,2)} S ${f(lon,3)} ${L()?'O':'W'}`}
@@ -309,7 +366,7 @@ if(/\bDPN|DEEPENING|PROFUNDIZ/.test(s))r.push(lowish?(L()?'se profundiza (baja l
 if(/\bWKN|WEAKENING|DEBILIT/.test(s))r.push(lowish?(L()?'se debilita (su presión central sube)':'weakening (central pressure rising)'):(L()?'se debilita':'weakening'));
 if(/\bFILL/.test(s))r.push(L()?'se rellena (sube la presión)':'filling (pressure rising)');if(/INTSF|INTENSIF/.test(s))r.push(L()?'se intensifica':'intensifying');
 return r.join(', ')+'.'}).filter(Boolean);if(!parts.length)return null;
-return `<article class="card solo"><div><h3>${esc(name)}</h3>${parts.map(x=>`<p>${esc(x)}</p>`).join('')}<div class="raw">${esc(t)}</div></div></article>`}
+return `<article class="card wide"><header class="ch"><h3>${esc(name)}</h3></header><div class="ct">${parts.map(x=>`<p>${esc(x)}</p>`).join('')}<div class="raw">${esc(t)}</div></div></article>`}
 
 const KNOWN=new Set();G.forEach(g=>g[1].split(/[\s\/·-]+/).forEach(w=>KNOWN.add(norm(w))));
 ('SECTOR CON DE EL LA LAS LOS DEL A Y EN AL HASTA DESDE PARTIR VIS MAR RAFAGAS RAFAGA FUERZA AREA ZONA RESTO PLATA INTERIOR EXTERIOR CENTRO NORTE SUR ESTE OESTE NORESTE NORDESTE NOROESTE SUDESTE SURESTE SUDOESTE SUROESTE COSTA LITORAL ROLANDO PERIODOS EVOLUCIONANDO LLUVIAS CHAPARRON TORMENTA PRONOSTICO VALIDO UTC SE SW NW VARIABLES MONTANOSA MUY GRUESA MAREJADA MAREJADILLA RIZADA ARBOLADA ENORME '
@@ -321,15 +378,15 @@ const t=norm(raw).replace(/\r/g,'');if(!t.trim()){$('#rep').innerHTML=`<p class=
 const re=/([A-Z][A-Z0-9 ,()\/-]{2,70}?):/g;const hs=[];let m;
 while(m=re.exec(t)){if(/(^|[\n.:])\s*$/.test(t.slice(Math.max(0,m.index-3),m.index))||m.index===0)hs.push({n:m[1].trim(),i:m.index,e:m.index+m[0].length});else re.lastIndex=m.index+1}
 const segs=[];if(!hs.length)segs.push({n:L()?'Boletín':'Bulletin',t});else{if(t.slice(0,hs[0].i).trim())segs.push({n:L()?'Encabezado':'Header',t:t.slice(0,hs[0].i)});hs.forEach((h,k)=>segs.push({n:h.n,t:t.slice(h.e,k+1<hs.length?hs[k+1].i:t.length)}))}
-let html='',warn='';const hits=new Map(),unk=new Set();
+let html='',warn='',syn='',zk=0;const hits=new Map(),unk=new Set();
 segs.forEach(s=>{const tt=s.t.replace(/\s+/g,' ').trim();const isW=/WARNING|AVISO/.test(s.n);if(!tt){if(isW)warn=s.n;return}
 (tt.match(/\b[A-Z]{2,}\b/g)||[]).forEach(w=>{if(!KNOWN.has(w))unk.add(w)});
 const isSyn=/SITUACION|SINOPTIC|SYNOPSIS|GENERAL SITUATION/.test(s.n)||(/DEPRESION|DEPRESSION|ANTICICLON|CFNT|FRONT|FRENTE|VAGUADA|TROUGH|DORSAL|RIDGE|\bLOW\b.*HPA/.test(tt)&&!winds(tt).ws.length);
 const w=isW?s.n:warn;warn='';
-html+=(isSyn?synop(s.n,tt):zone(s.n,tt,w))||synop(s.n,tt)||`<article class="card solo"><div><h3>${esc(s.n)}</h3><p>${L()?'No encontré viento ni sistemas en esta parte.':'No wind or weather systems found in this part.'}</p><div class="raw">${esc(tt)}</div></div></article>`});
+const c=(isSyn?synop(s.n,tt):zone(s.n,tt,w))||synop(s.n,tt)||`<article class="card wide"><header class="ch"><h3>${esc(s.n)}</h3></header><div class="ct"><p>${L()?'No encontré viento ni sistemas en esta parte.':'No wind or weather systems found in this part.'}</p><div class="raw">${esc(tt)}</div></div></article>`;if(c.includes('card wide'))syn+=c;else html+=c.replace('class="card z"','class="card z v'+(zk++%3)+'"')});
 G.forEach(g=>{if(g[0]==='dir')return;g[1].split(/\s*[\/·]\s*/).forEach(k=>{const kk=norm(k);if(kk.length>1&&!/\d|DD|-ERLY/.test(kk)&&new RegExp('(^|[^A-Z])'+kk.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^A-Z]|$)').test(t))hits.set(g[1],g[L()?2:3])})});
-html+=`<article class="card solo"><div><h3>${L()?'Abreviaturas de este boletín':'Abbreviations in this bulletin'}</h3><div class="chips">${[...hits].map(([k,v])=>`<span class="chip"><b>${esc(k)}</b> · ${esc(v)}</span>`).join('')||`<span class="empty">${L()?'Ninguna del glosario.':'None from the glossary.'}</span>`}</div>${unk.size?`<h3 style="margin-top:14px;font-size:18px">${L()?'Palabras sin traducir':'Untranslated words'}</h3><div class="chips">${[...unk].slice(0,40).map(w=>`<span class="chip">${esc(w)}</span>`).join('')}</div>`:''}</div></article>`;
-$('#rep').innerHTML=html;$('#msg').textContent=L()?'Informe listo':'Report ready'}
+html+=`<article class="card wide"><header class="ch"><h3>${L()?'Abreviaturas de este boletín':'Abbreviations in this bulletin'}</h3></header><div class="ct"><div class="chips">${[...hits].map(([k,v])=>`<span class="chip"><b>${esc(k)}</b> · ${esc(v)}</span>`).join('')||`<span class="empty">${L()?'Ninguna del glosario.':'None from the glossary.'}</span>`}</div>${unk.size?`<h3 style="margin-top:14px;font-size:18px">${L()?'Palabras sin traducir':'Untranslated words'}</h3><div class="chips">${[...unk].slice(0,40).map(w=>`<span class="chip">${esc(w)}</span>`).join('')}</div>`:''}</div></article>`;
+$('#rep').innerHTML=syn+html;$('#msg').textContent=L()?'Informe listo':'Report ready'}
 
 function copy(){const txt=[...document.querySelectorAll('#rep .card')].map(c=>(c.querySelector('h3')?.textContent||'')+'\n'+[...c.querySelectorAll('p,.pill')].map(p=>p.textContent).join('\n')).join('\n\n');navigator.clipboard.writeText(txt).then(()=>$('#msg').textContent=L()?'Copiado':'Copied',()=>$('#msg').textContent=L()?'No se pudo copiar':'Could not copy')}
 
