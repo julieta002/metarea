@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Traductor METAREA VI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: práctico, de mesa de cartas: claro y directo, para leer antes de zarpar
+   IDEA: el boletín impreso de radio costera, con su traducción anotada al lado
+   PICTURE: el traductor mismo, con una rosa de los vientos por zona que muestra la rolada
+   COLOUR and TYPE: blanco, tinta, azul de río profundo dominante, rojo y amarillo de bandera de señales; Barlow Condensed + Barlow
+   LAYOUT: banda azul con el traductor arriba, informe debajo, después glosario buscable, Beaufort y links */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0c1620);--ink:light-dark(#0e1a24,#e6eef3);--mute:light-dark(#51606c,#9fb1bd);
+--river:light-dark(#0b4f6c,#0f3f57);--riverInk:#f3f8fb;--line:light-dark(#d9e2e8,#22323f);
+--card:light-dark(#f4f7f9,#132230);--red:light-dark(#c62828,#ff6b6b);--yel:#f2c230;--ok:light-dark(#1d7a46,#5fd497)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Barlow Condensed",Barlow,sans-serif;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,5vw,48px)}h2{font-size:32px;margin-bottom:12px}h3{font-size:22px}
+.band{padding:clamp(28px,4vw,64px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.top{background:var(--river);color:var(--riverInk)}
+.top p{color:#cfe2ec;max-width:68ch;margin:8px 0 20px}
+.flags{display:flex;gap:4px;margin-bottom:14px}.flags i{width:22px;height:14px;display:block}
+textarea{width:100%;min-height:190px;font:15px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:14px;border-radius:10px;border:2px solid #2f7393;background:#062f42;color:#e8f3f8;resize:vertical}
+textarea:focus,button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+button{font:600 16px Barlow,sans-serif;min-height:44px;padding:0 18px;border-radius:10px;border:0;cursor:pointer}
+.go{background:var(--yel);color:#1a1400}.ghost{background:transparent;color:var(--riverInk);border:2px solid #5d93ad}
+.small{font-size:13px;color:#b9d3e0}
+#rep{display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:16px}
+.card.solo{grid-template-columns:minmax(0,1fr)}
+.card h3{margin-bottom:6px}.card p{margin:6px 0}
+.raw{font:13px/1.45 ui-monospace,Menlo,monospace;color:var(--mute);overflow-wrap:anywhere;margin-top:8px}
+.pill{display:inline-block;font-weight:600;font-size:14px;padding:3px 10px;border-radius:99px;margin-top:6px}
+.p0{background:#e3eef5;color:#24506a}.p1{background:#d9f2e3;color:#145c34}.p2{background:#fff1c2;color:#6b5000}.p3{background:#ffd9d6;color:#8a1a14}
+.rose{width:130px;height:130px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:14px;background:var(--bg)}
+.chip b{font-family:ui-monospace,Menlo,monospace}
+.empty{color:var(--mute)}
+.gl-tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+input[type=search]{font:16px Barlow,sans-serif;min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);flex:1 1 240px}
+.cat{background:var(--card);color:var(--ink);border:1px solid var(--line)}.cat[aria-pressed=true]{background:var(--river);color:var(--riverInk);border-color:var(--river)}
+table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:14px;color:var(--mute);font-weight:600}
+td.k{font:600 15px ui-monospace,Menlo,monospace;white-space:nowrap}td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ex{font:13px ui-monospace,Menlo,monospace;color:var(--mute)}
+.alt{background:var(--card)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:28px}
+.links a{color:var(--ink);font-weight:600}.links li{margin:8px 0}
+pre,.scroll{overflow-x:auto}code{overflow-wrap:anywhere}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--mute);font-family:Barlow,sans-serif;font-weight:500}.stack td:empty{display:none}
+.card{grid-template-columns:minmax(0,1fr)}.rose{justify-self:start}}
+@media(prefers-reduced-motion:no-preference){.card{animation:in .35s ease both}@keyframes in{from{opacity:0;transform:translateY(6px)}}}
+</style><script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script></head>
+<body>
+<section class="band top"><div class="wrap">
+  <div class="flags" aria-hidden="true"><i style="background:#c62828"></i><i style="background:#f2c230"></i><i style="background:#fff"></i><i style="background:#1d4fa0"></i></div>
+  <h1>Traductor de boletines METAREA VI</h1>
+  <p>Pegá el boletín marítimo del SMN tal como viene (en mayúsculas y con abreviaturas) y tocá <b>Armar informe</b>. Te lo traduce zona por zona: viento en Beaufort, nudos y km/h, roladas, horario UTC pasado a hora argentina, fenómenos y visibilidad.</p>
+  <label for="txt" class="small">Boletín (el que aparece al abrir es un ejemplo)</label>
+  <textarea id="txt" spellcheck="false"></textarea>
+  <div class="row">
+    <button class="go" id="go">Armar informe</button>
+    <button class="ghost" id="ej">Cargar ejemplo</button>
+    <button class="ghost" id="cp">Copiar informe</button>
+    <span class="small" id="msg" role="status"></span>
+  </div>
+</div></section>
+
+<section class="band"><div class="wrap">
+  <h2>Informe</h2>
+  <div id="rep"><p class="empty">Todavía no hay informe.</p></div>
+  <p class="small" style="color:var(--mute);margin-top:14px">La lectura para veleros es orientativa (pensada para un velero chico en salida recreativa): compará siempre con el viento medido en el lugar, el estado del río y el criterio del patrón.</p>
+</div></section>
+
+<section class="band alt"><div class="wrap">
+  <h2>Glosario</h2>
+  <div class="gl-tools">
+    <input type="search" id="q" placeholder="Buscar: BACK, WKN, marejada, visibilidad…" aria-label="Buscar en el glosario">
+  </div>
+  <div class="gl-tools" id="cats"></div>
+  <table class="stack"><thead><tr><th>Término</th><th>Qué significa</th><th>Ejemplo</th></tr></thead><tbody id="gl"></tbody></table>
+  <p class="small" style="color:var(--mute)">Son abreviaturas habituales en boletines marítimos en español e inglés; el SMN puede usar variantes. Si aparece una que no está, se lista igual en "Palabras sin traducir" del informe.</p>
+</div></section>
+
+<section class="band"><div class="wrap grid2">
+  <div>
+    <h2>Escala Beaufort</h2>
+    <div class="scroll"><table><thead><tr><th>F</th><th>Nombre</th><th>Nudos</th><th>km/h</th><th>En el río</th></tr></thead><tbody id="bf"></tbody></table></div>
+    <p class="small" style="color:var(--mute)">Viento medio sostenido (no ráfagas). 1 nudo = 1,852 km/h.</p>
+  </div>
+  <div>
+    <h2>Escala de mar (Douglas)</h2>
+    <div class="scroll"><table><thead><tr><th>Grado</th><th>Nombre</th><th>Altura de ola</th></tr></thead><tbody id="dg"></tbody></table></div>
+    <h2 style="margin-top:28px">Visibilidad</h2>
+    <table><tbody>
+      <tr><td><b>Buena</b></td><td class="n">más de 5 MN</td></tr>
+      <tr><td><b>Regular</b></td><td class="n">2 a 5 MN</td></tr>
+      <tr><td><b>Mala</b></td><td class="n">1 km a 2 MN</td></tr>
+      <tr><td><b>Muy mala</b></td><td class="n">menos de 1 km</td></tr>
+    </tbody></table>
+    <p class="small" style="color:var(--mute)">MN = milla náutica = 1852 m.</p>
+  </div>
+</div></section>
+
+<section class="band alt"><div class="wrap links">
+  <h2>Dónde leer el boletín</h2>
+  <ul>
+    <li><a href="https://www.smn.gob.ar/">Servicio Meteorológico Nacional (SMN)</a>: emite el boletín METAREA VI y los pronósticos para el Río de la Plata (buscá la sección de pronóstico marítimo).</li>
+    <li><a href="https://community.wmo.int/node/36305">METAREA VI en la OMM</a>: cobertura oficial del área que pronostica Argentina.</li>
+    <li><a href="https://www.hidro.gov.ar/ModelosPronosticos.asp">Servicio de Hidrografía Naval: modelos y pronósticos</a>: marea, onda de tormenta y altura del Río de la Plata.</li>
+  </ul>
+  <p class="small" style="color:var(--mute)">La página no puede descargar el boletín sola (el navegador bloquea pedidos a otros sitios desde acá): abrilo en el SMN, copiá el texto y pegalo arriba.</p>
+</div></section>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const EJ=`SITUACION GENERAL: DEPRESION 984HPA 54S 40W MOV E WKN. CFNT 36S 58W 42S 62W MOV NE.
+RIO DE LA PLATA INTERIOR: SECTOR W 3/4 BACK SECTOR S 5/6 CON RAFAGAS EL 24/2100 PROB DE SH VIS BUENA A REGULAR.
+AREA CENTRO OESTE: SECTOR W 6 BACK SECTOR S 8 CON RAFAGAS EL 24/1800 MAR GRUESA.`;
+
+const BF=[[0,'Calma','<1','<1','Espejo, sin olas'],[1,'Ventolina','1–3','1–5','Rizos sin espuma'],[2,'Flojito','4–6','6–11','Olitas que no rompen'],[3,'Flojo','7–10','12–19','Algunas crestas rompen'],[4,'Bonancible','11–16','20–28','Borreguitos frecuentes'],[5,'Fresquito','17–21','29–38','Olas moderadas, mucha espuma'],[6,'Fresco','22–27','39–49','Olas grandes, crestas blancas, rociones'],[7,'Frescachón','28–33','50–61','Mar gruesa, espuma en bandas'],[8,'Temporal','34–40','62–74','Olas altas, rompientes'],[9,'Temporal fuerte','41–47','75–88','Visibilidad reducida por rociones'],[10,'Temporal duro','48–55','89–102','Mar blanca'],[11,'Temporal muy duro','56–63','103–117','Olas excepcionales'],[12,'Temporal huracanado','64+','118+','Aire lleno de espuma']];
+const DG=[[0,'Calma','0 m'],[1,'Rizada','0–0,1 m'],[2,'Marejadilla','0,1–0,5 m'],[3,'Marejada','0,5–1,25 m'],[4,'Fuerte marejada','1,25–2,5 m'],[5,'Gruesa','2,5–4 m'],[6,'Muy gruesa','4–6 m'],[7,'Arbolada','6–9 m'],[8,'Montañosa','9–14 m'],[9,'Enorme','más de 14 m']];
+
+const G=[
+['Estructura','AVISO / AVISO DE TEMPORAL','Advertencia de viento fuerza 8 o más (o de otro peligro). Va primero en el boletín.','AVISO DE TEMPORAL AREA SUR'],
+['Estructura','SITUACION GENERAL','Descripción sinóptica: dónde están las bajas, altas y frentes y hacia dónde van.','SITUACION GENERAL: ...'],
+['Estructura','PRONOSTICO','Parte con el viento, tiempo y visibilidad esperados por zona.',''],
+['Estructura','VALIDEZ / VALIDO HASTA','Período en que rige el pronóstico, en UTC.','VALIDO HASTA 25/1200'],
+['Estructura','AREA / ZONA','Porción geográfica del boletín (zona costera u oceánica).','AREA CENTRO OESTE'],
+['Estructura','RESTO DEL AREA','La parte de la zona que no se nombró antes.',''],
+['Estructura','UTC / Z','Hora universal. Argentina = UTC − 3 h.','2100 UTC = 18:00 HOA'],
+['Estructura','DD/HHMM','Día del mes / hora y minutos UTC.','24/2100 = día 24, 21:00 UTC'],
+['Sistemas','DEPRESION / BAJA','Centro de baja presión. En el hemisferio sur el viento gira en sentido horario alrededor.','DEPRESION 984HPA'],
+['Sistemas','ANTICICLON / ALTA','Centro de alta presión; giro antihorario en el hemisferio sur.','ANTICICLON 1030HPA'],
+['Sistemas','HPA','Hectopascal, unidad de presión (= milibar).','984HPA'],
+['Sistemas','CFNT / FRENTE FRIO','Frente frío (cold front). Al pasar, el viento suele rolar a S/SW y refresca.','CFNT 36S 58W'],
+['Sistemas','WFNT / FRENTE CALIDO','Frente cálido (warm front).',''],
+['Sistemas','OFNT / FRENTE OCLUIDO','Frente ocluido.',''],
+['Sistemas','FRENTE ESTACIONARIO / QSTNR','Frente casi quieto.',''],
+['Sistemas','VAGUADA / TROF','Eje alargado de baja presión.',''],
+['Sistemas','DORSAL / RIDGE','Eje alargado de alta presión.',''],
+['Sistemas','MOV','Se mueve hacia… (la dirección es hacia donde va).','MOV E = se desplaza al este'],
+['Sistemas','STNR / ESTACIONARIO','No se mueve.',''],
+['Sistemas','DPN / PROF','Profundizándose (deepening): la baja baja su presión, se intensifica.','MOV NE DPN'],
+['Sistemas','WKN / DEBIL','Debilitándose (weakening).','MOV E WKN'],
+['Sistemas','FILL','Rellenándose: una baja que sube su presión.',''],
+['Sistemas','INTSF','Intensificándose.',''],
+['Sistemas','NC','Sin cambios.',''],
+['Sistemas','54S 40W','Posición: 54° latitud sur, 40° longitud oeste.',''],
+['Viento','SECTOR','Dirección aproximada (de dónde viene), ± un octante.','SECTOR W'],
+['Viento','3/4','Fuerza 3 a 4 en la escala Beaufort.','SECTOR S 5/6'],
+['Viento','BACK','Rola en sentido antihorario (W → SW → S).','W 3/4 BACK S 5/6'],
+['Viento','VEER','Rola en sentido horario (N → NE → E).','NE 4 VEER E 5'],
+['Viento','VRB / VARIABLE','Dirección variable, sin una predominante.','VRB 2'],
+['Viento','RAFAGAS / RAF','Ráfagas: picos breves más fuertes que el viento medio.','CON RAFAGAS'],
+['Viento','CALMA','Sin viento (fuerza 0).',''],
+['Viento','TEMPORAL','Fuerza 8 o más.',''],
+['Viento','LUEGO / LATER','Después, más adelante.',''],
+['Viento','TEMPO / TEMPORARIAMENTE','Por momentos, de forma temporaria.',''],
+['Viento','OCNL / OCASIONALMENTE','Ocasionalmente.',''],
+['Viento','PERIODOS','Por ratos.','PERIODOS DE FUERZA 6'],
+['Viento','AUMENTANDO / DISMINUYENDO','Va subiendo / bajando la intensidad.',''],
+['Viento','KT','Nudos (millas náuticas por hora).',''],
+['Fenómenos','SH / CHAPARRONES','Chaparrones (showers): lluvia intensa y breve.','PROB DE SH'],
+['Fenómenos','RA / LLUVIA','Lluvia.',''],
+['Fenómenos','DZ / LLOVIZNA','Llovizna.',''],
+['Fenómenos','TS / TORMENTAS','Tormentas eléctricas (thunderstorm).',''],
+['Fenómenos','FG / NIEBLA','Niebla: visibilidad menor a 1 km.',''],
+['Fenómenos','BR / NEBLINA','Neblina: visibilidad de 1 a 5 km por humedad.',''],
+['Fenómenos','HZ / BRUMA','Bruma seca (humo, polvo).',''],
+['Fenómenos','SN / NIEVE','Nieve.',''],
+['Fenómenos','GR / GRANIZO','Granizo.',''],
+['Fenómenos','PROB','Probabilidad (posible, no seguro).','PROB DE SH'],
+['Fenómenos','AISLADAS / ISOL','En pocos lugares.',''],
+['Fenómenos','DISPERSAS / SCT','En varios lugares, no en todos.',''],
+['Fenómenos','HIELO / ICE','Hielo o engelamiento; témpanos en zonas antárticas.',''],
+['Visibilidad','VIS','Visibilidad.','VIS BUENA A REGULAR'],
+['Visibilidad','BUENA / REGULAR / MALA / MUY MALA','Más de 5 MN / 2–5 MN / 1 km–2 MN / menos de 1 km.',''],
+['Visibilidad','MN / NM','Milla náutica (1852 m).',''],
+['Mar','MAR','Estado del mar (escala Douglas, ver tabla).','MAR GRUESA'],
+['Mar','MAREJADA / GRUESA / ARBOLADA','Grados 3, 5 y 7 de la escala Douglas.',''],
+['Mar','MAR DE FONDO / SWELL','Olas que vienen de lejos, no generadas por el viento local.',''],
+['Mar','ONDA DE TORMENTA','Subida del nivel del agua por viento y presión (sudestada).',''],
+['Direcciones','N NE E SE S SW W NW','De dónde viene el viento: norte, nordeste, este, sudeste, sur, sudoeste, oeste, noroeste.','Viento del W = viene del oeste'],
+['Direcciones','O / SO / NO','Oeste, sudoeste, noroeste en notación en español.',''],
+];
+
+const DIRS={N:0,NNE:22.5,NE:45,ENE:67.5,E:90,ESE:112.5,SE:135,SSE:157.5,S:180,SSW:202.5,SSO:202.5,SW:225,SO:225,WSW:247.5,OSO:247.5,W:270,O:270,WNW:292.5,ONO:292.5,NW:315,NO:315,NNW:337.5,NNO:337.5};
+const NAMES=['norte','nor-nordeste','nordeste','este-nordeste','este','este-sudeste','sudeste','sur-sudeste','sur','sur-sudoeste','sudoeste','oeste-sudoeste','oeste','oeste-noroeste','noroeste','nor-noroeste'];
+const dname=d=>d==null?'dirección variable':NAMES[Math.round(DIRS[d]/22.5)%16];
+const PHEN=[[/\b(SH|CHAPARRONES?)\b/,'chaparrones'],[/\b(TS|TORMENTAS?)\b/,'tormentas eléctricas'],[/\b(RA|LLUVIAS?)\b/,'lluvia'],[/\b(DZ|LLOVIZNAS?)\b/,'llovizna'],[/\b(FG|NIEBLAS?)\b/,'niebla'],[/\b(BR|NEBLINAS?)\b/,'neblina'],[/\b(HZ|BRUMA)\b/,'bruma'],[/\b(SN|NIEVE|NEVADAS?)\b/,'nieve'],[/\b(GR|GRANIZO)\b/,'granizo']];
+const SEA=['CALMA','RIZADA','MAREJADILLA','MAREJADA','FUERTE MAREJADA','GRUESA','MUY GRUESA','ARBOLADA','MONTANOSA','ENORME'];
+const SEAH=DG.map(r=>r[2]);
+const norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+const fr=(a,b)=>{const lo=BF[a],hi=BF[b??a];if(!lo||!hi)return '';const p=(x,i)=>x[i].split('–');const k=[p(lo,2)[0],p(hi,2).pop()],m=[p(lo,3)[0],p(hi,3).pop()];return `${k[0]}–${k[1]} kt, ${m[0]}–${m[1]} km/h`.replace('<1–','0–')};
+const fname=(a,b)=>b!=null&&b!==a?`fuerza ${a} a ${b} (${BF[a]?.[1].toLowerCase()} a ${BF[b]?.[1].toLowerCase()})`:`fuerza ${a} (${BF[a]?.[1].toLowerCase()})`;
+const loc=(d,h,m)=>{let H=+h-3,D=+d;if(H<0){H+=24;D-=1}return `día ${D}, ${String(H).padStart(2,'0')}:${m} hora argentina`};
+
+function times(t){return [...t.matchAll(/\b(\d{2})\/(\d{2})(\d{2})\b/g)].map(x=>{const pre=t.slice(Math.max(0,x.index-14),x.index);const w=/HASTA/.test(pre)?'hasta el':/DESDE|PARTIR/.test(pre)?'desde el':'el';return `${w} día ${+x[1]} a las ${x[2]}:${x[3]} UTC = ${loc(x[1],x[2],x[3])}`})}
+function winds(t){const re=/(?:^|[\s,.(])(?:SECTOR\s+)?(NNE|ENE|ESE|SSE|SSW|WSW|WNW|NNW|SSO|OSO|ONO|NNO|NE|SE|SW|NW|SO|NO|N|E|S|W|O|VRB|VARIABLES?)\s+(?:FUERZA\s+)?(\d{1,2})(?:\s*[\/-]\s*(\d{1,2}))?(?!\d|\s*(?:W|S|HPA)\b)/g;return [...t.matchAll(re)].map(x=>({d:/^V/.test(x[1])?null:x[1],a:+x[2],b:x[3]!=null?+x[3]:null,i:x.index,e:x.index+x[0].length}))}
+function rot(prev,cur,between){if(/\bBACK/.test(between))return 'rola en sentido antihorario (BACK) a';if(/\bVEER/.test(between))return 'rola en sentido horario (VEER) a';if(/ROTANDO|ROLANDO|CAMBIANDO|EVOLUCIONANDO/.test(between)){if(prev.d&&cur.d){let df=(DIRS[cur.d]-DIRS[prev.d]+360)%360;return df>180?'rola en sentido antihorario a':'rola en sentido horario a'}return 'cambia a'}if(/LUEGO|LATER/.test(between))return 'luego';if(/TEMPO|TEMPORARIAMENTE|PERIODOS|OCNL|OCASIONAL/.test(between))return 'por momentos';return 'y'}
+
+function rose(ws,between){const c=65,r=50,pt=(deg,rr)=>[c+rr*Math.sin(deg*Math.PI/180),c-rr*Math.cos(deg*Math.PI/180)];
+let s=`<svg class="rose" viewBox="0 0 130 130" role="img" aria-label="Rosa de los vientos"><circle cx="65" cy="65" r="${r}" fill="none" stroke="var(--line)" stroke-width="2"/>`;
+[['N',0],['E',90],['S',180],['O',270]].forEach(([l,d])=>{const [x,y]=pt(d,r+9);s+=`<text x="${x}" y="${y+4}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--mute)">${l}</text>`});
+const ok=ws.filter(w=>w.d);ok.forEach((w,i)=>{const last=i===ok.length-1,col=last?'var(--red)':'var(--mute)';const [x1,y1]=pt(DIRS[w.d],r-2),[x2,y2]=pt(DIRS[w.d],10);const ang=DIRS[w.d]+180;const h1=pt(ang-155,0),a=(o)=>{const rad=(ang+o)*Math.PI/180;return [x2-9*Math.sin(rad),y2+9*Math.cos(rad)]};const [ax,ay]=a(25),[bx,by]=a(-25);
+s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${last?4:3}" stroke-linecap="round"/><polygon points="${x2},${y2} ${ax},${ay} ${bx},${by}" fill="${col}"/>`});
+if(ok.length>1){const a0=DIRS[ok[ok.length-2].d],a1=DIRS[ok[ok.length-1].d];let df=(a1-a0+360)%360;const ccw=/BACK/.test(between)||(!/VEER/.test(between)&&df>180);if(ccw)df=df-360;const [sx,sy]=pt(a0,r),[ex,ey]=pt(a1,r);s+=`<path d="M${sx} ${sy} A${r} ${r} 0 ${Math.abs(df)>180?1:0} ${df>0?1:0} ${ex} ${ey}" fill="none" stroke="var(--yel)" stroke-width="5" stroke-linecap="round"/>`}
+return s+`</svg>`}
+
+function verdict(ws,gust){const mx=Math.max(...ws.map(w=>w.b??w.a));let lv=mx<=2?0:mx<=4?1:mx<=5?2:3;if(gust&&lv<3&&mx>=4)lv++;const txt=['Poco viento para navegar a vela','Viento cómodo para una salida','Exigente: solo con tripulación con experiencia y rizos','No recomendable para una salida recreativa'][lv];return `<span class="pill p${lv}">Para navegar a vela: ${txt}${gust?' (hay ráfagas)':''}</span>`}
+
+function zone(name,t){const ws=winds(t);const between=ws.length>1?t.slice(ws[0].e,ws[ws.length-1].i):'';const out=[];
+ws.forEach((w,i)=>{const base=`viento del ${dname(w.d)} ${fname(w.a,w.b)}, ${fr(w.a,w.b)}`;if(i===0)out.push('Al principio, '+base);else out.push(rot(ws[i-1],w,t.slice(ws[i-1].e,w.i))+' '+base)});
+let p=ws.length?out.join('; ')+'.':'';p=p.charAt(0).toUpperCase()+p.slice(1);
+const gust=/RAFAGA|\bRAF\b|GUST/.test(t);if(gust){const g=t.match(/RAFAGAS?\s+(?:DE\s+)?(\d{1,3})\s*(KT|KM)?/);p+=' Con ráfagas'+(g?` de ${g[1]}${g[2]?' '+g[2].toLowerCase().replace('km','km/h'):' (Beaufort)'}`:'')+'.'}
+const tm=times(t);if(tm.length)p+=' Momento indicado: '+tm.join('; ')+'.';
+const ph=[];PHEN.forEach(([r,n])=>{if(r.test(t))ph.push(n)});if(ph.length)p+=` ${/PROB/.test(t)?'Probabilidad de':'Se esperan'} ${ph.join(', ')}.`;
+const v=t.match(/VIS(?:IBILIDAD)?\s+((?:MUY\s+)?(?:BUENA|REGULAR|MALA)(?:\s+A\s+(?:MUY\s+)?(?:BUENA|REGULAR|MALA))?)/);if(v)p+=` Visibilidad ${v[1].toLowerCase()}.`;
+const sm=SEA.slice().sort((a,b)=>b.length-a.length).find(s=>new RegExp('MAR\\s+'+s+'\\b').test(t));if(sm)p+=` Mar ${sm.toLowerCase().replace('montanosa','montañosa')} (${SEAH[SEA.indexOf(sm)]}).`;
+if(!p)return null;
+return `<article class="card${ws.some(w=>w.d)?'':' solo'}"><div><h3>${esc(name)}</h3><p>${esc(p)}</p>${ws.length?verdict(ws,gust):''}<div class="raw">${esc(t)}</div></div>${ws.some(w=>w.d)?rose(ws,between):''}</article>`}
+
+function synop(name,t){const parts=t.split(/\.\s*/).filter(Boolean).map(s=>{let r=[];const sys=s.match(/DEPRESION|BAJA|ANTICICLON|ALTA|CFNT|FRENTE FRIO|WFNT|FRENTE CALIDO|OFNT|FRENTE OCLUIDO|FRENTE ESTACIONARIO|VAGUADA|DORSAL/);if(!sys)return null;
+const nm={DEPRESION:'Depresión (baja)',BAJA:'Baja presión',ANTICICLON:'Anticiclón (alta)',ALTA:'Alta presión',CFNT:'Frente frío','FRENTE FRIO':'Frente frío',WFNT:'Frente cálido','FRENTE CALIDO':'Frente cálido',OFNT:'Frente ocluido','FRENTE OCLUIDO':'Frente ocluido','FRENTE ESTACIONARIO':'Frente estacionario',VAGUADA:'Vaguada',DORSAL:'Dorsal'}[sys[0]];r.push(nm);
+const h=s.match(/(\d{3,4})\s*HPA/);if(h)r.push(`de ${h[1]} hPa`);const pos=[...s.matchAll(/(\d{1,2})S\s*(\d{1,3})W/g)].map(x=>`${x[1]}° S ${x[2]}° O`);if(pos.length)r.push((pos.length>1?'que pasa por ':'centrada en ')+pos.join(', '));
+const mv=s.match(/MOV\s+(NNE|ENE|ESE|SSE|SSW|WSW|WNW|NNW|NE|SE|SW|NW|N|E|S|W)\b/);if(mv)r.push(`${r.length>1?', ':''}se desplaza hacia el ${dname(mv[1])}`);if(/\bSTNR|ESTACIONARI/.test(s))r.push('casi sin moverse');
+if(/\bDPN|PROFUNDIZ/.test(s))r.push(sys[0].match(/DEPRESION|BAJA/)?'y se profundiza (baja la presión, se intensifica)':'y se intensifica');
+if(/\bWKN|DEBILIT/.test(s))r.push(sys[0].match(/DEPRESION|BAJA/)?'y se debilita (su presión central sube)':'y se debilita');if(/\bFILL/.test(s))r.push('y se rellena');
+return r.join(' ').replace(/ ,/g,',')+'.'}).filter(Boolean);if(!parts.length)return null;
+return `<article class="card solo"><div><h3>${esc(name)}</h3>${parts.map(x=>`<p>${esc(x)}</p>`).join('')}<div class="raw">${esc(t)}</div></div></article>`}
+
+const KNOWN=new Set();G.forEach(g=>g[1].split(/\s*\/\s*|\s+/).forEach(w=>KNOWN.add(norm(w))));
+'SECTOR CON DE EL LA LAS LOS DEL A Y EN AL HASTA DESDE PARTIR PROB VIS BUENA REGULAR MALA MUY MAR RAFAGAS RAFAGA FUERZA SITUACION GENERAL AREA ZONA RESTO RIO PLATA INTERIOR EXTERIOR CENTRO NORTE SUR ESTE OESTE COSTA LITORAL ROTANDO ROLANDO CAMBIANDO PERIODOS LUEGO OCASIONALMENTE AUMENTANDO DISMINUYENDO CHAPARRONES LLUVIAS LLUVIA TORMENTAS NIEBLA NEBLINA PRONOSTICO AVISO TEMPORAL VALIDO UTC NE SE SW NW SO NO N S E W O VRB VARIABLE VARIABLES BACK VEER MOV WKN DPN CFNT HPA GRUESA MAREJADA MAREJADILLA'.split(' ').forEach(w=>KNOWN.add(w));
+
+function report(){const raw=$('#txt').value;try{localStorage.setItem('metarea-txt',raw)}catch(e){}
+const t=norm(raw).replace(/\r/g,'');if(!t.trim()){$('#rep').innerHTML='<p class="empty">Pegá un boletín arriba.</p>';return}
+const re=/([A-Z][A-Z0-9 ,()\/-]{2,70}?):/g;const hs=[];let m;while(m=re.exec(t)){const b=t[m.index-1];if(m.index===0||/[\n.]/.test(b)||/[\n.]\s*$/.test(t.slice(Math.max(0,m.index-3),m.index)))hs.push({n:m[1].trim(),i:m.index,e:m.index+m[0].length})}
+const segs=[];if(!hs.length)segs.push({n:'Boletín',t:t});else{if(hs[0].i>0&&t.slice(0,hs[0].i).trim())segs.push({n:'Encabezado',t:t.slice(0,hs[0].i)});hs.forEach((h,k)=>segs.push({n:h.n,t:t.slice(h.e,k+1<hs.length?hs[k+1].i:t.length)}))}
+let html='';const hits=new Map(),unk=new Set();
+segs.forEach(s=>{const tt=s.t.replace(/\s+/g,' ').trim();if(!tt)return;const isSyn=/SITUACION|SINOPTIC/.test(s.n)||/DEPRESION|ANTICICLON|CFNT|FRENTE|VAGUADA|DORSAL/.test(tt)&&!winds(tt).length;html+=(isSyn?synop(s.n,tt):zone(s.n,tt))||synop(s.n,tt)||`<article class="card solo"><div><h3>${esc(s.n)}</h3><p>No encontré viento ni sistemas en esta parte.</p><div class="raw">${esc(tt)}</div></div></article>`});
+G.forEach(g=>g[1].split(/\s*\/\s*/).forEach(k=>{const kk=norm(k);if(kk.length>1&&!/^\d|DD\//.test(kk)&&new RegExp('(^|[^A-Z])'+kk.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^A-Z]|$)').test(t))hits.set(g[1],g[2])}));
+(t.match(/\b[A-Z]{2,}\b/g)||[]).forEach(w=>{if(!KNOWN.has(w))unk.add(w)});
+html+=`<article class="card solo"><div><h3>Abreviaturas de este boletín</h3><div class="chips">${[...hits].map(([k,v])=>`<span class="chip"><b>${esc(k)}</b> · ${esc(v)}</span>`).join('')||'<span class="empty">Ninguna del glosario.</span>'}</div>${unk.size?`<h3 style="margin-top:14px;font-size:18px">Palabras sin traducir</h3><div class="chips">${[...unk].slice(0,40).map(w=>`<span class="chip">${esc(w)}</span>`).join('')}</div>`:''}</div></article>`;
+$('#rep').innerHTML=html;$('#msg').textContent='Informe listo';}
+
+function copy(){const txt=[...document.querySelectorAll('#rep .card')].map(c=>{const h=c.querySelector('h3')?.textContent||'';const ps=[...c.querySelectorAll('p,.pill')].map(p=>p.textContent).join('\n');return h+'\n'+ps}).join('\n\n');navigator.clipboard.writeText(txt).then(()=>$('#msg').textContent='Copiado',()=>$('#msg').textContent='No se pudo copiar')}
+
+$('#bf').innerHTML=BF.map(r=>`<tr><td class="n">${r[0]}</td><td>${r[1]}</td><td class="n">${r[2]}</td><td class="n">${r[3]}</td><td>${r[4]}</td></tr>`).join('');
+$('#dg').innerHTML=DG.map(r=>`<tr><td class="n">${r[0]}</td><td>${r[1]}</td><td class="n">${r[2]}</td></tr>`).join('');
+const cats=['Todo',...new Set(G.map(g=>g[0]))];let cat='Todo';
+$('#cats').innerHTML=cats.map(c=>`<button class="cat" aria-pressed="${c==='Todo'}" data-c="${c}">${c}</button>`).join('');
+function gl(){const q=norm($('#q').value.trim());const rows=G.filter(g=>(cat==='Todo'||g[0]===cat)&&(!q||norm(g.join(' ')).includes(q)));$('#gl').innerHTML=rows.map(g=>`<tr><td class="k">${esc(g[1])}</td><td>${esc(g[2])}</td><td class="ex">${esc(g[3])}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Sin resultados.</td></tr>'}
+$('#cats').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.c;document.querySelectorAll('.cat').forEach(x=>x.setAttribute('aria-pressed',x===b));gl()});
+$('#q').addEventListener('input',gl);
+$('#go').addEventListener('click',report);$('#ej').addEventListener('click',()=>{$('#txt').value=EJ;report()});$('#cp').addEventListener('click',copy);
+let saved=null;try{saved=localStorage.getItem('metarea-txt')}catch(e){}
+$('#txt').value=saved||EJ;gl();report();
+}
+</script>
+</body>
+</html>
