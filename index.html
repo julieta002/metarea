@@ -75,6 +75,13 @@ section{padding:56px 0}
 .p0{border-left:4px solid #8aa9b8}.p1{border-left:4px solid #3fae7a}.p2{border-left:4px solid #e3b02f}.p3{border-left:4px solid var(--red)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .chip{border:1px solid var(--line);padding:5px 10px;font-size:13px;background:var(--soft)}.chip b{font-family:ui-monospace,Menlo,monospace}
+.tag{display:block;font-size:11px;font-weight:700;opacity:.75;margin-bottom:2px}
+.tl{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:6px 0 10px;padding:0;list-style:none}
+.tl .st{border:1px solid var(--rl);padding:4px 8px;font-size:13px}.tl .st span{opacity:.75;font-size:12px}.tl .ar{font-size:13px;opacity:.9}
+.int{margin-top:12px;padding-top:10px;border-top:1px solid var(--rl)}.int h4{font-size:13px;margin:0 0 4px;font-weight:700}.int ul{margin:0;padding-left:18px}.int li{font-size:14px;margin:4px 0}
+.term{background:none;border:0;border-bottom:1px dotted currentColor;color:inherit;font:inherit;padding:0;min-height:0;cursor:pointer;border-radius:0}
+.tip{display:none;font-size:13px;background:rgba(255,255,255,.95);color:#3b3f42;padding:8px 10px;margin-top:8px}.tip.on{display:block}
+.rawh{font-size:11px;opacity:.7;margin-top:10px}
 .empty{color:var(--mute)}.note{font-size:13px;color:var(--mute)}
 .card .rose text{fill:currentColor;opacity:.75}
 /* glosario */
@@ -349,7 +356,8 @@ const wv=t0.match(/\b(?:WAVES?|OLAS?|HS|ALTURA)\s+(?:DE\s+|OF\s+)?(\d+(?:[.,]\d+
 if(/SWELL|MAR DE FONDO/.test(t0))p+=L()?' Hay mar de fondo.':' Swell present.';
 if(!p&&!warn)return null;
 const ok=ws.some(w=>w.d);const lw=ws[ws.length-1];const big=lw?(lw.fb!=null&&lw.fb!==lw.fa?lw.fa+'–'+lw.fb:String(lw.fa)):'';
-return `<article class="card z"><header class="ch"><h3>${esc(name)}</h3>${warn?`<span class="pill p3">${L()?'Aviso vigente':'Warning in force'}: ${esc(warn)}</span>`:''}</header>${big||ok?`<div class="cb">${big?`<div class="big"><b>${big}</b><span>${S[lang].big}</span></div>`:''}${ok?rose(ws,bt):''}</div>`:''}<div class="ct"><p>${esc(p)}</p>${ws.length?verdict(ws,gust):''}<div class="raw">${esc(t0)}</div></div></article>`}
+const it=interp(name,ws,t,t0,gust,v?v[1]:'');
+return `<article class="card z"><header class="ch"><span class="tag">${L()?'Pronóstico':'Forecast'}</span><h3>${esc(name)}</h3>${warn?`<span class="pill p3">${L()?'Aviso vigente':'Warning in force'}: ${esc(warn)}</span>`:''}</header>${big||ok?`<div class="cb">${big?`<div class="big"><b>${big}</b><span>${S[lang].big}</span></div>`:''}${ok?rose(ws,bt):''}</div>`:''}<div class="ct">${timeline(ws,t)}<p>${esc(p)}</p>${ws.length?verdict(ws,gust):''}${intBox(it)}${rawBox(t0)}</div></article>`}
 
 function dirAny(w){w=dirWords(w,false);return DIRS[w]!=null?w:null}
 function pos(lat,lon){const f=(s,dl)=>s.length>dl?`${+s.slice(0,s.length-2)}°${s.slice(-2)}′`:`${+s}°`;return `${f(lat,2)} S ${f(lon,3)} ${L()?'O':'W'}`}
@@ -366,12 +374,48 @@ if(/\bDPN|DEEPENING|PROFUNDIZ/.test(s))r.push(lowish?(L()?'se profundiza (baja l
 if(/\bWKN|WEAKENING|DEBILIT/.test(s))r.push(lowish?(L()?'se debilita (su presión central sube)':'weakening (central pressure rising)'):(L()?'se debilita':'weakening'));
 if(/\bFILL/.test(s))r.push(L()?'se rellena (sube la presión)':'filling (pressure rising)');if(/INTSF|INTENSIF/.test(s))r.push(L()?'se intensifica':'intensifying');
 return r.join(', ')+'.'}).filter(Boolean);if(!parts.length)return null;
-return `<article class="card wide"><header class="ch"><h3>${esc(name)}</h3></header><div class="ct">${parts.map(x=>`<p>${esc(x)}</p>`).join('')}<div class="raw">${esc(t)}</div></div></article>`}
+return `<article class="card wide"><header class="ch"><span class="tag">${L()?'Situación actual (análisis)':'Current situation (analysis)'}</span><h3>${esc(name)}</h3></header><div class="ct">${parts.map(x=>`<p>${esc(x)}</p>`).join('')}${intBox(synInt(t))}${rawBox(t)}</div></article>`}
 
 const KNOWN=new Set();G.forEach(g=>g[1].split(/[\s\/·-]+/).forEach(w=>KNOWN.add(norm(w))));
 ('SECTOR CON DE EL LA LAS LOS DEL A Y EN AL HASTA DESDE PARTIR VIS MAR RAFAGAS RAFAGA FUERZA AREA ZONA RESTO PLATA INTERIOR EXTERIOR CENTRO NORTE SUR ESTE OESTE NORESTE NORDESTE NOROESTE SUDESTE SURESTE SUDOESTE SUROESTE COSTA LITORAL ROLANDO PERIODOS EVOLUCIONANDO LLUVIAS CHAPARRON TORMENTA PRONOSTICO VALIDO UTC SE SW NW VARIABLES MONTANOSA MUY GRUESA MAREJADA MAREJADILLA RIZADA ARBOLADA ENORME '
 +'WIND WITH ON OF THE AND IN AT TO OR UNTIL FROM BY AFTER SEA GOOD MODERATE POOR VERY ROUGH SLIGHT SMOOTH RIPPLED HIGH PHENOMENAL LOW GALE WARNING STORM FORECAST VALID ISSUED SITUATION GENERAL SYNOPSIS INNER OUTER CENTRE CENTER NORTH SOUTH EAST WEST NORTHERLY SOUTHERLY EASTERLY WESTERLY NORTHEAST NORTHWEST SOUTHEAST SOUTHWEST GUST GUSTING SHOWER M KTS FORCE PROBABILITY CHANCE EXPECTED MOVIENDOSE SHIFTING MODERATING FAST RAPIDO LENTO TILL REST').split(' ').forEach(w=>KNOWN.add(w));
 
+const CAN={O:'W',SO:'SW',NO:'NW',SSO:'SSW',OSO:'WSW',ONO:'WNW',NNO:'NNW'};
+const cc=d=>{if(d==null)return 'VRB';const c=CAN[d]||d;return L()?c.replace(/W/g,'O'):c};
+function firstTime(t){const m=t.match(/\b(\d{2})\/(\d{2})(\d{2})\b/)||t.match(/\b(\d{2})(\d{2})(\d{2})\s*(?:UTC|Z)\b/);if(!m)return '';const lo=toLocal(m[1],m[2],m[3]);return `${L()?'día':'day'} ${lo.D} · ${lo.T}`}
+function timeline(ws,t){if(ws.length<2)return '';const ft=firstTime(t);let h='<ol class="tl">';
+ws.forEach((w,i)=>{if(i){const k=conn(ws[i-1],w,t.slice(ws[i-1].e,w.i));const sym=/antihor|counterclock|backing/i.test(k)?'↺':/horario|clockwise|veering/i.test(k)?'↻':/aument|increas/i.test(k)?'↑':/dismin|decreas/i.test(k)?'↓':'→';h+=`<li class="ar">${sym}${i===1&&ft?' '+esc(ft):''}</li>`}
+const lab=i===0?(L()?'Inicial':'Start'):i===ws.length-1?(L()?'Final':'End'):(L()?'Luego':'Then');h+=`<li class="st"><span>${lab}</span> <b>${cc(w.d)} ${w.fb!=null&&w.fb!==w.fa?w.fa+'–'+w.fb:w.fa}</b></li>`});return h+'</ol>'}
+const IS=(d,set)=>!!d&&set.includes(CAN[d]||d);
+function rotDir(a,b,bt){if(/\bBACK/.test(bt))return -1;if(/\bVEER/.test(bt))return 1;const df=(DIRS[b]-DIRS[a]+360)%360;return df===0?0:df>180?-1:1}
+function interp(name,ws,t,t0,gust,vis){const o=[],E=L(),f=w=>w.fb??w.fa,dw=ws.filter(w=>w.d);
+if(dw.length>1){const a=dw[0],b=dw[dw.length-1],r=rotDir(a.d,b.d,t.slice(a.e,b.i));
+if(r<0&&IS(a.d,['N','NNW','NW','WNW','W'])&&IS(b.d,['S','SSW','SW','WSW'])&&f(b)>=f(a))o.push(E?'Rotación antihoraria del sector N/W al S/SW con viento en aumento: patrón típico del paso de un frente frío en el hemisferio sur. Esperá un cambio brusco, ráfagas y posibles chaparrones en el momento del pasaje.':'Counterclockwise shift from N/W to S/SW with increasing wind: typical cold-front passage in the southern hemisphere. Expect a sudden shift, gusts and possible showers as it passes.');
+if(r>0&&IS(b.d,['NNE','N','NNW','NW'])&&f(b)>f(a))o.push(E?'Rotación horaria hacia el N/NW con viento en aumento: suele anticipar la llegada de un sistema frontal (viento prefrontal).':'Clockwise shift towards N/NW with increasing wind: often ahead of an approaching front (pre-frontal wind).');
+if(f(b)-f(a)>=2)o.push(E?`El viento aumenta ${f(b)-f(a)} grados Beaufort: conviene tomar rizos antes del cambio, no durante.`:`Wind increases by ${f(b)-f(a)} Beaufort forces: reef before the change, not during it.`);
+if(f(a)-f(b)>=2)o.push(E?'El viento afloja con el correr del tiempo.':'Wind eases over time.')}
+const last=ws[ws.length-1];if(last){const F=f(last),plata=/PLATA/.test(name);
+if(plata&&IS(last.d,['SE','ESE','E','SSE'])&&F>=4)o.push(E?'Viento del sudeste sostenido sobre el Río de la Plata: condición de sudestada, el nivel del río puede subir. Revisá la altura prevista en Hidrografía Naval.':'Sustained south-easterly over the Río de la Plata ("sudestada"): the water level may rise. Check the forecast level at the Naval Hydrographic Service.');
+if(plata&&IS(last.d,['SW','WSW','W'])&&F>=5)o.push(E?'Viento fuerte del sudoeste u oeste en el Río de la Plata: empuja el agua lejos de la costa argentina y puede producir bajante. Atención al calado al salir o volver a puerto.':'Strong south-westerly or westerly on the Río de la Plata: pushes water away from the Argentine shore and can cause low water. Mind your draft leaving or entering port.');
+if(F>=8)o.push(E?'Fuerza 8 o más: condiciones de temporal.':'Force 8 or more: gale conditions.')}
+if(gust)o.push(E?'Con ráfagas, los picos pueden superar en uno o dos grados Beaufort al viento medio indicado.':'With gusts, peaks can exceed the stated mean wind by one or two Beaufort forces.');
+if(/\b(TS|TSRA|TORMENTAS?|THUNDERSTORMS?)\b/.test(t0))o.push(E?'Tormentas: posibles rachas fuertes y cambios bruscos de dirección cerca de las celdas.':'Thunderstorms: possible strong squalls and sudden wind shifts near the cells.');
+if(vis&&/MALA|POOR/.test(vis))o.push(E?'Visibilidad reducida en algún momento: radar o AIS, luces de navegación y señales sonoras.':'Visibility reduced at times: radar or AIS, navigation lights and sound signals.');
+return o}
+function synInt(t){const o=[],E=L();
+if(/\bDPN|DEEPENING|PROFUNDIZ/.test(t))o.push(E?'Una baja que se profundiza aumenta el gradiente de presión: el viento a su alrededor tiende a aumentar.':'A deepening low tightens the pressure gradient: winds around it tend to strengthen.');
+if(/\bWKN|WEAKENING|DEBILIT|\bFILL/.test(t)&&/DEPRESION|DEPRESSION|\bLOW\b|\bBAJA\b/.test(t))o.push(E?'Una baja que se debilita o se rellena tiende a dar viento más moderado en las zonas cercanas.':'A weakening or filling low tends to bring more moderate winds nearby.');
+if(/CFNT|FRENTE FRIO|COLD FRONT/.test(t)&&/(MOV|MOVING|SE DESPLAZA)[A-Z ]*\b(N|NE|E|NNE|ENE)\b/.test(t))o.push(E?'El frente frío avanza hacia el N/NE: las zonas que tiene adelante recibirán después el cambio de viento al S/SW, con ráfagas y chaparrones.':'The cold front is moving N/NE: areas ahead of it will get the wind shift to S/SW later, with gusts and showers.');
+return o}
+const intBox=it=>it.length?`<div class="int"><h4>${L()?'Posible interpretación':'Possible interpretation'}</h4><ul>${it.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:'';
+const TM=new Map();G.forEach(g=>g[1].split(/\s*[\/·]\s*/).forEach(k=>{k=norm(k).trim();if(k.length>1&&!/\d|DD|ERLY|\.\.\./.test(k)&&!TM.has(k))TM.set(k,g)}));
+DG.forEach((r,i)=>[SEA_EN[i],SEA_ES[i]].forEach(k=>{if(!TM.has(k))TM.set(k,['mar',k,`Estado del mar ${r[1].toLowerCase()} (Douglas ${r[0]}): olas de ${r[3]}.`,`Sea state ${r[2].toLowerCase()} (Douglas ${r[0]}): waves ${r[3].replace(/,/g,'.')}.`,''])}));
+['WESTERLY','EASTERLY','NORTHERLY','SOUTHERLY'].forEach((k,i)=>TM.set(k,['dir',k,'Viento del '+['oeste','este','norte','sur'][i]+'.','Wind from the '+['west','east','north','south'][i]+'.','']));
+const btn=(txt,k)=>`<button class="term" data-k="${esc(k)}">${esc(txt)}</button>`;
+function markRaw(t){const w=t.split(/(\s+)/),cl=x=>x.replace(/[.,;:]+$/,'');let h='';
+for(let i=0;i<w.length;i++){if(i+2<w.length){const two=cl(w[i])+' '+cl(w[i+2]);if(TM.has(two)&&cl(w[i])===w[i]){h+=btn(w[i]+' '+cl(w[i+2]),two)+esc(w[i+2].slice(cl(w[i+2]).length));i+=2;continue}}
+const one=cl(w[i]);if(TM.has(one))h+=btn(one,one)+esc(w[i].slice(one.length));else h+=esc(w[i])}return h}
+const rawBox=t=>`<div class="rawh">${L()?'Original (tocá una palabra subrayada)':'Original (tap an underlined word)'}</div><div class="raw" style="margin-top:4px;border-top:0;padding-top:0">${markRaw(t)}</div><div class="tip" role="status"></div>`;
 let last='';
 function report(){const raw=$('#txt').value;try{localStorage.setItem('metarea-txt',raw)}catch(e){}
 const t=norm(raw).replace(/\r/g,'');if(!t.trim()){$('#rep').innerHTML=`<p class="empty">${L()?'Pegá un boletín arriba.':'Paste a bulletin above.'}</p>`;return}
@@ -383,12 +427,12 @@ segs.forEach(s=>{const tt=s.t.replace(/\s+/g,' ').trim();const isW=/WARNING|AVIS
 (tt.match(/\b[A-Z]{2,}\b/g)||[]).forEach(w=>{if(!KNOWN.has(w))unk.add(w)});
 const isSyn=/SITUACION|SINOPTIC|SYNOPSIS|GENERAL SITUATION/.test(s.n)||(/DEPRESION|DEPRESSION|ANTICICLON|CFNT|FRONT|FRENTE|VAGUADA|TROUGH|DORSAL|RIDGE|\bLOW\b.*HPA/.test(tt)&&!winds(tt).ws.length);
 const w=isW?s.n:warn;warn='';
-const c=(isSyn?synop(s.n,tt):zone(s.n,tt,w))||synop(s.n,tt)||`<article class="card wide"><header class="ch"><h3>${esc(s.n)}</h3></header><div class="ct"><p>${L()?'No encontré viento ni sistemas en esta parte.':'No wind or weather systems found in this part.'}</p><div class="raw">${esc(tt)}</div></div></article>`;if(c.includes('card wide'))syn+=c;else html+=c.replace('class="card z"','class="card z v'+(zk++%3)+'"')});
+const c=(isSyn?synop(s.n,tt):zone(s.n,tt,w))||synop(s.n,tt)||`<article class="card wide"><header class="ch"><h3>${esc(s.n)}</h3></header><div class="ct"><p>${L()?'No encontré viento ni sistemas en esta parte.':'No wind or weather systems found in this part.'}</p>${rawBox(tt)}</div></article>`;if(c.includes('card wide'))syn+=c;else html+=c.replace('class="card z"','class="card z v'+(zk++%3)+'"')});
 G.forEach(g=>{if(g[0]==='dir')return;g[1].split(/\s*[\/·]\s*/).forEach(k=>{const kk=norm(k);if(kk.length>1&&!/\d|DD|-ERLY/.test(kk)&&new RegExp('(^|[^A-Z])'+kk.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^A-Z]|$)').test(t))hits.set(g[1],g[L()?2:3])})});
 html+=`<article class="card wide"><header class="ch"><h3>${L()?'Abreviaturas de este boletín':'Abbreviations in this bulletin'}</h3></header><div class="ct"><div class="chips">${[...hits].map(([k,v])=>`<span class="chip"><b>${esc(k)}</b> · ${esc(v)}</span>`).join('')||`<span class="empty">${L()?'Ninguna del glosario.':'None from the glossary.'}</span>`}</div>${unk.size?`<h3 style="margin-top:14px;font-size:18px">${L()?'Palabras sin traducir':'Untranslated words'}</h3><div class="chips">${[...unk].slice(0,40).map(w=>`<span class="chip">${esc(w)}</span>`).join('')}</div>`:''}</div></article>`;
 $('#rep').innerHTML=syn+html;$('#msg').textContent=L()?'Informe listo':'Report ready'}
 
-function copy(){const txt=[...document.querySelectorAll('#rep .card')].map(c=>(c.querySelector('h3')?.textContent||'')+'\n'+[...c.querySelectorAll('p,.pill')].map(p=>p.textContent).join('\n')).join('\n\n');navigator.clipboard.writeText(txt).then(()=>$('#msg').textContent=L()?'Copiado':'Copied',()=>$('#msg').textContent=L()?'No se pudo copiar':'Could not copy')}
+function copy(){const txt=[...document.querySelectorAll('#rep .card')].map(c=>(c.querySelector('h3')?.textContent||'')+'\n'+[...c.querySelectorAll('.tl,p,.pill,.int li')].map(p=>p.textContent).join('\n')).join('\n\n');navigator.clipboard.writeText(txt).then(()=>$('#msg').textContent=L()?'Copiado':'Copied',()=>$('#msg').textContent=L()?'No se pudo copiar':'Could not copy')}
 
 let cat='all';
 function gl(){const q=norm($('#q').value.trim());const rows=G.filter(g=>(cat==='all'||g[0]===cat)&&(!q||norm(g.join(' ')).includes(q)));$('#gl').innerHTML=rows.map(g=>`<tr><td class="k">${esc(g[1])}</td><td>${esc(g[L()?2:3])}</td><td class="ex">${esc(g[4])}</td></tr>`).join('')||`<tr><td colspan="3" class="empty">${L()?'Sin resultados.':'No results.'}</td></tr>`}
@@ -406,6 +450,7 @@ document.querySelector('.lang').addEventListener('click',e=>{const b=e.target.cl
 $('#tz').addEventListener('change',e=>{tzv=e.target.value;try{localStorage.setItem('metarea-tz',tzv)}catch(x){}report()});
 $('#cats').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.c;cats();gl()});
 $('#q').addEventListener('input',gl);
+$('#rep').addEventListener('click',e=>{const b=e.target.closest('.term');if(!b)return;const g=TM.get(b.dataset.k);const tip=b.closest('.card').querySelector('.tip');if(!g||!tip)return;tip.innerHTML=`<b>${esc(g[1])}</b> · ${esc(g[L()?2:3])}`;tip.classList.add('on')});
 $('#go').addEventListener('click',report);$('#cp').addEventListener('click',copy);
 $('#ejEs').addEventListener('click',()=>{$('#txt').value=EJ.es;report()});$('#ejEn').addEventListener('click',()=>{$('#txt').value=EJ.en;report()});
 let saved=null;try{saved=localStorage.getItem('metarea-txt')}catch(e){}
