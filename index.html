@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Traductor METAREA VI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: práctico, de mesa de cartas: claro y directo, para leer antes de zarpar
+   IDEA: el boletín impreso de radio costera, con su traducción anotada al lado
+   PICTURE: el traductor mismo, con una rosa de los vientos por zona que muestra la rolada
+   COLOUR and TYPE: blanco, tinta, azul de río profundo dominante, rojo y amarillo de bandera de señales; Barlow Condensed + Barlow
+   LAYOUT: banda azul con el traductor arriba, informe debajo, después glosario buscable, escalas y links */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#0c1620);--ink:light-dark(#0e1a24,#e6eef3);--mute:light-dark(#51606c,#9fb1bd);
+--river:light-dark(#0b4f6c,#0f3f57);--riverInk:#f3f8fb;--line:light-dark(#d9e2e8,#22323f);
+--card:light-dark(#f4f7f9,#132230);--red:light-dark(#c62828,#ff6b6b);--yel:#f2c230}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Barlow Condensed",Barlow,sans-serif;line-height:1.05;text-wrap:balance;margin:0}
+h1{font-size:clamp(32px,5vw,48px)}h2{font-size:32px;margin-bottom:12px}h3{font-size:22px}
+.band{padding:clamp(28px,4vw,64px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+.top{background:var(--river);color:var(--riverInk)}
+.top p{color:#cfe2ec;max-width:68ch;margin:8px 0 20px}
+.bar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.flags{display:flex;gap:4px}.flags i{width:22px;height:14px;display:block}
+.lang{display:flex;gap:6px}.lang button{min-height:40px;padding:0 14px;background:transparent;color:var(--riverInk);border:2px solid #5d93ad}.lang button[aria-pressed=true]{background:var(--riverInk);color:#0b4f6c;border-color:var(--riverInk)}
+textarea{width:100%;min-height:200px;font:15px/1.5 ui-monospace,Menlo,Consolas,monospace;padding:14px;border-radius:10px;border:2px solid #2f7393;background:#062f42;color:#e8f3f8;resize:vertical}
+textarea:focus,button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--yel);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+button{font:600 16px Barlow,sans-serif;min-height:44px;padding:0 18px;border-radius:10px;border:0;cursor:pointer}
+.go{background:var(--yel);color:#1a1400}.ghost{background:transparent;color:var(--riverInk);border:2px solid #5d93ad}
+select{font:16px Barlow,sans-serif;min-height:44px;padding:0 10px;border-radius:10px;border:2px solid #5d93ad;background:#062f42;color:#e8f3f8;max-width:100%}
+.tz{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.small{font-size:13px;color:#b9d3e0}
+#rep{display:grid;gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:16px}
+.card.solo{grid-template-columns:minmax(0,1fr)}
+.card h3{margin-bottom:6px}.card p{margin:6px 0}
+.raw{font:13px/1.45 ui-monospace,Menlo,monospace;color:var(--mute);overflow-wrap:anywhere;margin-top:8px}
+.pill{display:inline-block;font-weight:600;font-size:14px;padding:3px 10px;border-radius:99px;margin:6px 6px 0 0}
+.p0{background:#e3eef5;color:#24506a}.p1{background:#d9f2e3;color:#145c34}.p2{background:#fff1c2;color:#6b5000}.p3{background:#ffd9d6;color:#8a1a14}
+.rose{width:130px;height:130px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chip{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:14px;background:var(--bg)}
+.chip b{font-family:ui-monospace,Menlo,monospace}
+.empty{color:var(--mute)}.note{font-size:13px;color:var(--mute)}
+.gl-tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+input[type=search]{font:16px Barlow,sans-serif;min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);flex:1 1 240px}
+.cat{background:var(--card);color:var(--ink);border:1px solid var(--line)}.cat[aria-pressed=true]{background:var(--river);color:var(--riverInk);border-color:var(--river)}
+table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:14px;color:var(--mute);font-weight:600}
+td.k{font:600 15px ui-monospace,Menlo,monospace}td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ex{font:13px ui-monospace,Menlo,monospace;color:var(--mute)}
+.alt{background:var(--card)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:28px}
+.links a{color:var(--ink);font-weight:600}.links li{margin:8px 0}
+pre,.scroll{overflow-x:auto}code{overflow-wrap:anywhere}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--mute);font-family:Barlow,sans-serif;font-weight:500}.stack td:empty{display:none}
+.card{grid-template-columns:minmax(0,1fr)}.rose{justify-self:start}}
+@media(prefers-reduced-motion:no-preference){.card{animation:in .35s ease both}@keyframes in{from{opacity:0;transform:translateY(6px)}}}
+</style><script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script></head>
+<body>
+<section class="band top"><div class="wrap">
+  <div class="bar">
+    <div class="flags" aria-hidden="true"><i style="background:#c62828"></i><i style="background:#f2c230"></i><i style="background:#fff"></i><i style="background:#1d4fa0"></i></div>
+    <div class="lang" role="group" aria-label="Idioma / Language"><button data-lang="es">ES</button><button data-lang="en">EN</button></div>
+  </div>
+  <h1 data-t="title"></h1>
+  <p data-t="intro"></p>
+  <label for="txt" class="small" data-t="label"></label>
+  <textarea id="txt" spellcheck="false"></textarea>
+  <div class="tz"><label for="tz" class="small" data-t="tzLabel"></label><select id="tz"></select></div>
+  <div class="row">
+    <button class="go" id="go" data-t="go"></button>
+    <button class="ghost" id="ejEs" data-t="exEs"></button>
+    <button class="ghost" id="ejEn" data-t="exEn"></button>
+    <button class="ghost" id="cp" data-t="copy"></button>
+    <span class="small" id="msg" role="status"></span>
+  </div>
+</div></section>
+
+<section class="band"><div class="wrap">
+  <h2 data-t="repH"></h2>
+  <div id="rep"></div>
+  <p class="note" style="margin-top:14px" data-t="repNote"></p>
+</div></section>
+
+<section class="band alt"><div class="wrap">
+  <h2 data-t="glH"></h2>
+  <div class="gl-tools"><input type="search" id="q"></div>
+  <div class="gl-tools" id="cats"></div>
+  <table class="stack"><thead><tr><th data-t="thTerm"></th><th data-t="thMean"></th><th data-t="thEx"></th></tr></thead><tbody id="gl"></tbody></table>
+  <p class="note" data-t="glNote"></p>
+</div></section>
+
+<section class="band"><div class="wrap grid2">
+  <div>
+    <h2 data-t="bfH"></h2>
+    <div class="scroll"><table><thead><tr><th>F</th><th data-t="thName"></th><th data-t="thKt"></th><th>km/h</th><th data-t="thWater"></th></tr></thead><tbody id="bf"></tbody></table></div>
+    <p class="note" data-t="bfNote"></p>
+  </div>
+  <div>
+    <h2 data-t="dgH"></h2>
+    <div class="scroll"><table><thead><tr><th>#</th><th>Español</th><th>English</th><th data-t="thWave"></th></tr></thead><tbody id="dg"></tbody></table></div>
+    <h2 style="margin-top:28px" data-t="visH"></h2>
+    <table><tbody id="vt"></tbody></table>
+    <p class="note" data-t="nmNote"></p>
+  </div>
+</div></section>
+
+<section class="band alt"><div class="wrap links">
+  <h2 data-t="linksH"></h2>
+  <ul>
+    <li><a href="https://www.smn.gob.ar/">Servicio Meteorológico Nacional (SMN)</a>: <span data-t="l1"></span></li>
+    <li><a href="https://community.wmo.int/node/36305">METAREA VI · WMO / OMM</a>: <span data-t="l2"></span></li>
+    <li><a href="https://www.hidro.gov.ar/ModelosPronosticos.asp">Servicio de Hidrografía Naval</a>: <span data-t="l3"></span></li>
+  </ul>
+  <p class="note" data-t="linksNote"></p>
+</div></section>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+let lang='es',tzv='-3';
+try{lang=localStorage.getItem('metarea-lang')||(/^es/i.test(navigator.language)?'es':'en');tzv=localStorage.getItem('metarea-tz')||'-3'}catch(e){}
+
+const S={
+es:{title:'Traductor de boletines METAREA VI',intro:'Pegá el boletín marítimo tal como viene, en <b>español o en inglés</b> (mayúsculas y abreviaturas incluidas), y tocá <b>Armar informe</b>. Lo traduce zona por zona: viento en Beaufort, nudos y km/h, roladas, horario UTC pasado a tu hora local, fenómenos, visibilidad y estado del mar.',label:'Boletín (el que aparece al abrir es un ejemplo)',tzLabel:'Mostrar horarios en:',go:'Armar informe',exEs:'Ejemplo en español',exEn:'Ejemplo en inglés',copy:'Copiar informe',repH:'Informe',repNote:'La lectura para veleros es orientativa (pensada para un velero chico en salida recreativa) y esta página no es un pronóstico oficial: compará siempre con el último boletín, el viento medido en el lugar, el estado del agua y el criterio del patrón.',glH:'Glosario',glPh:'Buscar: BACK, VEERING, WKN, marejada, visibilidad…',thTerm:'Término',thMean:'Qué significa',thEx:'Ejemplo',glNote:'Abreviaturas habituales en boletines marítimos en español e inglés; cada servicio puede usar variantes. Si aparece una que no está, se lista en "Palabras sin traducir".',bfH:'Escala Beaufort',thName:'Nombre',thKt:'Nudos',thWater:'En el agua',bfNote:'Viento medio sostenido (no ráfagas). 1 nudo = 1,852 km/h.',dgH:'Estado del mar (Douglas)',thWave:'Altura de ola',visH:'Visibilidad',nmNote:'MN = milla náutica = 1852 m.',linksH:'Dónde leer el boletín',l1:'emite el boletín METAREA VI en español e inglés y los pronósticos para el Río de la Plata (buscá la sección de pronóstico marítimo).',l2:'cobertura oficial del área que pronostica Argentina.',l3:'marea, onda de tormenta y altura del Río de la Plata.',linksNote:'La página no puede descargar el boletín sola (el navegador bloquea pedidos a otros sitios): abrilo en la fuente, copiá el texto y pegalo arriba.',dev:'Hora de este dispositivo',all:'Todo'},
+en:{title:'METAREA VI bulletin translator',intro:'Paste the marine bulletin as it comes, in <b>English or Spanish</b> (capitals and abbreviations included), and tap <b>Build report</b>. It decodes it area by area: wind in Beaufort, knots and km/h, backing and veering, UTC times converted to your local time, weather, visibility and sea state.',label:'Bulletin (the one shown on load is an example)',tzLabel:'Show times in:',go:'Build report',exEs:'Spanish example',exEn:'English example',copy:'Copy report',repH:'Report',repNote:'The sailing note is only a rough guide (for a small yacht on a day sail) and this page is not an official forecast: always check the latest bulletin, the locally measured wind, the sea state and the skipper\'s judgement.',glH:'Glossary',glPh:'Search: BACK, VEERING, WKN, rough, visibility…',thTerm:'Term',thMean:'Meaning',thEx:'Example',glNote:'Common abbreviations in Spanish and English marine bulletins; each service may use variants. Anything not listed shows up under "Untranslated words".',bfH:'Beaufort scale',thName:'Name',thKt:'Knots',thWater:'On the water',bfNote:'Mean sustained wind (not gusts). 1 knot = 1.852 km/h.',dgH:'Sea state (Douglas)',thWave:'Wave height',visH:'Visibility',nmNote:'NM = nautical mile = 1852 m.',linksH:'Where to read the bulletin',l1:'issues the METAREA VI bulletin in Spanish and English, and forecasts for the Río de la Plata (look for the marine forecast section).',l2:'official coverage of the area forecast by Argentina.',l3:'tides, storm surge and water level of the Río de la Plata.',linksNote:'This page cannot download the bulletin by itself (the browser blocks requests to other sites): open it at the source, copy the text and paste it above.',dev:'This device\'s time',all:'All'}};
+
+const EJ={es:`AVISO DE TEMPORAL: AREA CENTRO OESTE: SECTOR W 6 BACK SECTOR S 8 CON RAFAGAS EL 24/1800 MAR GRUESA.
+SITUACION GENERAL: DEPRESION 984HPA 54S 40W MOV E WKN. CFNT 36S 58W 42S 62W MOV NE.
+RIO DE LA PLATA INTERIOR: SECTOR W 3/4 BACK SECTOR S 5/6 CON RAFAGAS EL 24/2100 PROB DE SH VIS BUENA A REGULAR.`,
+en:`GALE WARNING: AREA CENTRE WEST: WESTERLY 6 BACKING SOUTH 8 WITH GUSTS ON 24/1800. SEA ROUGH.
+SYNOPSIS: LOW 984HPA 54S 040W MOVING E 20KT WEAKENING. COLD FRONT 36S 058W 42S 062W MOVING NE.
+RIO DE LA PLATA INNER: WEST 3 TO 4 BACKING SOUTH 5 TO 6 WITH GUSTS FROM 24/2100. PROB OF SHOWERS. VIS GOOD TO MODERATE.
+DRAKE NORTH: NW 7 TO 8 VEERING W 9 LATER. SEA VERY ROUGH TO HIGH. WAVES 5 TO 7 M. VIS MODERATE OCNL POOR IN RAIN.`};
+
+const BF=[[0,'Calma','Calm','<1','<1','Espejo, sin olas','Sea like a mirror'],[1,'Ventolina','Light air','1–3','1–5','Rizos sin espuma','Ripples, no crests'],[2,'Flojito','Light breeze','4–6','6–11','Olitas que no rompen','Small wavelets'],[3,'Flojo','Gentle breeze','7–10','12–19','Algunas crestas rompen','Crests begin to break'],[4,'Bonancible','Moderate breeze','11–16','20–28','Borreguitos frecuentes','Frequent white horses'],[5,'Fresquito','Fresh breeze','17–21','29–38','Olas moderadas, mucha espuma','Moderate waves, many white horses'],[6,'Fresco','Strong breeze','22–27','39–49','Olas grandes, rociones','Large waves, some spray'],[7,'Frescachón','Near gale','28–33','50–61','Espuma en bandas','Foam blown in streaks'],[8,'Temporal','Gale','34–40','62–74','Olas altas, rompientes','Moderately high waves, crests break'],[9,'Temporal fuerte','Strong gale','41–47','75–88','Rociones reducen la visibilidad','Spray may reduce visibility'],[10,'Temporal duro','Storm','48–55','89–102','Mar blanca','Sea white with foam'],[11,'Temporal muy duro','Violent storm','56–63','103–117','Olas excepcionales','Exceptionally high waves'],[12,'Temporal huracanado','Hurricane force','64+','118+','Aire lleno de espuma','Air filled with foam and spray']];
+const KTB=[1,4,7,11,17,22,28,34,41,48,56,64];const kt2bf=k=>{let f=0;KTB.forEach((v,i)=>{if(k>=v)f=i+1});return f};
+const DG=[[0,'Calma','Calm (glassy)','0 m'],[1,'Rizada','Calm (rippled)','0–0,1 m'],[2,'Marejadilla','Smooth','0,1–0,5 m'],[3,'Marejada','Slight','0,5–1,25 m'],[4,'Fuerte marejada','Moderate','1,25–2,5 m'],[5,'Gruesa','Rough','2,5–4 m'],[6,'Muy gruesa','Very rough','4–6 m'],[7,'Arbolada','High','6–9 m'],[8,'Montañosa','Very high','9–14 m'],[9,'Enorme','Phenomenal','+14 m']];
+const SEA_ES=['CALMA','RIZADA','MAREJADILLA','MAREJADA','FUERTE MAREJADA','GRUESA','MUY GRUESA','ARBOLADA','MONTANOSA','ENORME'];
+const SEA_EN=['CALM','RIPPLED','SMOOTH','SLIGHT','MODERATE','ROUGH','VERY ROUGH','HIGH','VERY HIGH','PHENOMENAL'];
+const VT=[['Buena','Good','> 5 MN / NM'],['Regular','Moderate','2–5 MN / NM'],['Mala','Poor','1 km – 2 MN / NM'],['Muy mala','Very poor','< 1 km']];
+const CAT={est:['Estructura','Structure'],sis:['Sistemas','Systems'],vie:['Viento','Wind'],fen:['Fenómenos','Weather'],vis:['Visibilidad','Visibility'],mar:['Mar','Sea'],dir:['Direcciones','Directions']};
+const G=[
+['est','AVISO / WARNING','Advertencia de viento fuerte u otro peligro. Va primero en el boletín.','Warning of strong wind or another hazard. Comes first in the bulletin.','AVISO DE TEMPORAL'],
+['est','AVISO DE TEMPORAL / GALE WARNING','Viento fuerza 8 o más.','Wind force 8 or more.',''],
+['est','STORM WARNING','Aviso de tormenta: fuerza 10 u 11.','Force 10 or 11.',''],
+['est','HURRICANE FORCE','Fuerza 12.','Force 12.',''],
+['est','SITUACION GENERAL / SYNOPSIS','Situación sinóptica: dónde están bajas, altas y frentes y hacia dónde van.','Where the lows, highs and fronts are and where they are heading.',''],
+['est','PRONOSTICO / FORECAST','Parte con el viento, tiempo y visibilidad por zona.','Wind, weather and visibility by area.',''],
+['est','VALIDO HASTA / VALID UNTIL','Hasta cuándo rige, en UTC.','Valid until, in UTC.','VALID UNTIL 251200 UTC'],
+['est','EMITIDO / ISSUED','Hora de emisión del boletín.','Time the bulletin was issued.',''],
+['est','AREA / ZONA','Porción geográfica del boletín.','Geographic part of the bulletin.','AREA CENTRO OESTE'],
+['est','RESTO DEL AREA / REST OF AREA','La parte de la zona no nombrada antes.','The part of the area not mentioned before.',''],
+['est','UTC / Z','Hora universal. Argentina = UTC−3.','Universal time. Argentina = UTC−3.','2100 UTC = 18:00 (UTC−3)'],
+['est','DD/HHMM','Día del mes / hora UTC.','Day of month / UTC time.','24/2100'],
+['est','DDHHMM UTC','Día y hora juntos.','Day and time together.','251200 UTC'],
+['sis','DEPRESION / LOW / DEPRESSION','Baja presión. En el hemisferio sur el viento gira en sentido horario a su alrededor.','Low pressure. In the southern hemisphere wind circulates clockwise around it.','LOW 984HPA'],
+['sis','ANTICICLON / HIGH / ALTA','Alta presión; en el hemisferio sur, giro antihorario.','High pressure; counterclockwise circulation in the southern hemisphere.',''],
+['sis','HPA','Hectopascal, unidad de presión (= milibar).','Hectopascal, pressure unit (= millibar).','984HPA'],
+['sis','CFNT / FRENTE FRIO / COLD FRONT','Frente frío: al pasar, el viento rola a S/SW y refresca (hemisferio sur).','After it passes, wind backs to S/SW and turns colder (southern hemisphere).','CFNT 36S 58W'],
+['sis','WFNT / FRENTE CALIDO / WARM FRONT','Frente cálido.','Warm front.',''],
+['sis','OFNT / FRENTE OCLUIDO / OCCLUDED FRONT','Frente ocluido.','Occluded front.',''],
+['sis','FRENTE ESTACIONARIO / STATIONARY FRONT','Frente casi quieto.','Front barely moving.',''],
+['sis','VAGUADA / TROUGH','Eje alargado de baja presión.','Elongated area of low pressure.',''],
+['sis','DORSAL / RIDGE','Eje alargado de alta presión.','Elongated area of high pressure.',''],
+['sis','MOV / MOVING','Se desplaza hacia… (hacia donde va, no de dónde viene).','Moving towards… (where it goes, not where it comes from).','MOV E'],
+['sis','STNR / QSTNR / STATIONARY','Quieto / casi quieto.','Stationary / quasi-stationary.',''],
+['sis','DPN / DEEPENING','Se profundiza: baja su presión y se intensifica.','Pressure falling, intensifying.','MOV NE DPN'],
+['sis','WKN / WEAKENING','Se debilita.','Weakening.','MOV E WKN'],
+['sis','FILL / FILLING','Se rellena: una baja que sube su presión.','A low whose pressure is rising.',''],
+['sis','INTSF / INTENSIFYING','Se intensifica.','Intensifying.',''],
+['sis','SLOWLY / QUICKLY','Lentamente / rápido.','Slowly / quickly.',''],
+['sis','NC / NO CHANGE','Sin cambios.','No change.',''],
+['sis','54S 40W','Posición: 54° sur, 40° oeste. 5430S = 54°30′ S.','Position: 54° south, 40° west. 5430S = 54°30′ S.',''],
+['vie','SECTOR','Dirección aproximada de donde viene, ± un octante.','Approximate direction it comes from, ± one octant.','SECTOR W'],
+['vie','3/4 · 3 TO 4','Fuerza 3 a 4 Beaufort.','Force 3 to 4 Beaufort.','SECTOR S 5/6'],
+['vie','BACK / BACKING','Rola en sentido antihorario (W → SW → S).','Turns counterclockwise (W → SW → S).','W 3/4 BACK S 5/6'],
+['vie','VEER / VEERING','Rola en sentido horario (N → NE → E).','Turns clockwise (N → NE → E).','NW 7 VEERING W 9'],
+['vie','ROTANDO / CAMBIANDO / BECOMING','Cambia de dirección o fuerza.','Changing direction or strength.',''],
+['vie','VRB / VARIABLE','Dirección variable.','Variable direction.','VRB 2'],
+['vie','RAFAGAS / RACHAS / GUSTS','Picos breves más fuertes que el viento medio.','Short bursts stronger than the mean wind.','CON RAFAGAS'],
+['vie','CALMA / CALM','Sin viento (fuerza 0).','No wind (force 0).',''],
+['vie','TEMPORAL / GALE','Fuerza 8.','Force 8.',''],
+['vie','LUEGO / LATER / THEN','Después, más adelante.','Afterwards.',''],
+['vie','TEMPO / TEMPORARILY / TEMPORARIAMENTE','Por momentos.','At times.',''],
+['vie','OCNL / OCCASIONALLY / OCASIONALMENTE','Ocasionalmente.','Occasionally.',''],
+['vie','PERIODOS / PERIODS','Por ratos.','For periods.','PERIODOS DE FUERZA 6'],
+['vie','AUMENTANDO / INCREASING','Va subiendo la intensidad.','Getting stronger.',''],
+['vie','DISMINUYENDO / DECREASING / EASING','Va bajando la intensidad.','Getting lighter.',''],
+['vie','KT / NUDOS / KNOTS','Millas náuticas por hora (1 kt = 1,852 km/h).','Nautical miles per hour (1 kt = 1.852 km/h).',''],
+['vie','WESTERLY / -ERLY','En inglés, "westerly" = del oeste.','"Westerly" = from the west.','WESTERLY 6'],
+['fen','SH / CHAPARRONES / SHOWERS','Chaparrones: lluvia intensa y breve.','Showers: short, heavy rain.','PROB DE SH'],
+['fen','TS / TORMENTAS / THUNDERSTORMS','Tormentas eléctricas.','Thunderstorms.',''],
+['fen','RA / LLUVIA / RAIN','Lluvia.','Rain.',''],
+['fen','DZ / LLOVIZNA / DRIZZLE','Llovizna.','Drizzle.',''],
+['fen','FG / NIEBLA / FOG','Niebla: visibilidad menor a 1 km.','Fog: visibility under 1 km.',''],
+['fen','BR / NEBLINA / MIST','Neblina: 1 a 5 km por humedad.','Mist: 1–5 km, due to moisture.',''],
+['fen','HZ / BRUMA / HAZE','Bruma seca (humo, polvo).','Dry haze (smoke, dust).',''],
+['fen','SN / NIEVE / SNOW','Nieve.','Snow.',''],
+['fen','GR / GRANIZO / HAIL','Granizo.','Hail.',''],
+['fen','AGUANIEVE / SLEET','Aguanieve.','Sleet.',''],
+['fen','ENGELAMIENTO / ICING','Hielo que se forma sobre el barco; peligroso en aguas antárticas.','Ice building up on the vessel; dangerous in Antarctic waters.',''],
+['fen','TEMPANOS / ICEBERGS','Hielo flotante.','Floating ice.',''],
+['fen','PROB / PROBABLE / POSSIBLE','Probabilidad (posible, no seguro).','Probability (possible, not certain).','PROB OF SHOWERS'],
+['fen','AISLADAS / ISOLATED','En pocos lugares.','In few places.',''],
+['fen','DISPERSAS / SCATTERED','En varios lugares.','In several places.',''],
+['fen','LOCALMENTE / LOCALLY','En algunos lugares.','In some places.',''],
+['vis','VIS / VISIBILIDAD / VISIBILITY','Visibilidad (ver tabla).','Visibility (see table).','VIS GOOD TO MODERATE'],
+['vis','BUENA / GOOD','Más de 5 MN.','Over 5 NM.',''],
+['vis','REGULAR / MODERATE','2 a 5 MN.','2 to 5 NM.',''],
+['vis','MALA / POOR','1 km a 2 MN.','1 km to 2 NM.',''],
+['vis','MUY MALA / VERY POOR','Menos de 1 km.','Under 1 km.',''],
+['vis','MN / NM','Milla náutica (1852 m).','Nautical mile (1852 m).',''],
+['mar','MAR / SEA','Estado del mar, escala Douglas (ver tabla, con nombres en español e inglés).','Sea state, Douglas scale (see table, Spanish and English names).','SEA ROUGH · MAR GRUESA'],
+['mar','MAR DE FONDO / SWELL','Olas que vienen de lejos, no del viento local.','Waves from far away, not raised by the local wind.',''],
+['mar','OLAS / WAVES / HS','Altura significativa de ola, en metros.','Significant wave height, in metres.','WAVES 5 TO 7 M'],
+['mar','ONDA DE TORMENTA / STORM SURGE','Subida del nivel del agua por viento y presión (sudestada).','Water level rise from wind and pressure.',''],
+['dir','N NE E SE S SW W NW','De dónde viene el viento: norte, nordeste, este, sudeste, sur, sudoeste, oeste, noroeste.','Where the wind comes from.','W = viene del oeste / from the west'],
+['dir','O / SO / NO','Oeste, sudoeste, noroeste (notación en español).','West, south-west, north-west (Spanish notation).',''],
+['dir','NORTE… / NORTH…','Direcciones escritas completas.','Directions written in full.','SUR 5 · SOUTH 5'],
+];
+
+const DIRS={N:0,NNE:22.5,NE:45,ENE:67.5,E:90,ESE:112.5,SE:135,SSE:157.5,S:180,SSW:202.5,SSO:202.5,SW:225,SO:225,WSW:247.5,OSO:247.5,W:270,O:270,WNW:292.5,ONO:292.5,NW:315,NO:315,NNW:337.5,NNO:337.5};
+const NM={es:['norte','nor-nordeste','nordeste','este-nordeste','este','este-sudeste','sudeste','sur-sudeste','sur','sur-sudoeste','sudoeste','oeste-sudoeste','oeste','oeste-noroeste','noroeste','nor-noroeste'],en:['north','north-northeast','northeast','east-northeast','east','east-southeast','southeast','south-southeast','south','south-southwest','southwest','west-southwest','west','west-northwest','northwest','north-northwest']};
+const dname=d=>d==null?null:NM[lang][Math.round(DIRS[d]/22.5)%16];
+const DW=[['NORTH ?-?EAST(?:ERLY)?|NORESTE|NORDESTE','NE'],['NORTH ?-?WEST(?:ERLY)?|NOROESTE','NW'],['SOUTH ?-?EAST(?:ERLY)?|SUDESTE|SURESTE','SE'],['SOUTH ?-?WEST(?:ERLY)?|SUDOESTE|SUROESTE','SW'],['NORTH(?:ERLY)?|NORTE','N'],['SOUTH(?:ERLY)?|SUR','S'],['EAST(?:ERLY)?|ESTE','E'],['WEST(?:ERLY)?|OESTE','W']];
+const dirWords=(t,num)=>{DW.forEach(([w,c])=>{t=t.replace(new RegExp('\\b(?:'+w+')\\b'+(num?'(?=\\s+(?:FORCE\\s+|FUERZA\\s+)?\\d)':''),'g'),c)});return t};
+const norm=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+const PHEN=[[/\b(SH|SHRA|CHAPARRONES?|SHOWERS?)\b/,'chaparrones','showers'],[/\b(TS|TSRA|TORMENTAS?|THUNDERSTORMS?|THUNDER)\b/,'tormentas eléctricas','thunderstorms'],[/\b(RA|LLUVIAS?|RAIN)\b/,'lluvia','rain'],[/\b(DZ|LLOVIZNAS?|DRIZZLE)\b/,'llovizna','drizzle'],[/\b(FG|NIEBLAS?|FOG)\b/,'niebla','fog'],[/\b(BR|NEBLINAS?|MIST)\b/,'neblina','mist'],[/\b(HZ|BRUMA|HAZE)\b/,'bruma','haze'],[/\b(SN|NIEVE|NEVADAS?|SNOW)\b/,'nieve','snow'],[/\b(GR|GRANIZO|HAIL)\b/,'granizo','hail'],[/\b(AGUANIEVE|SLEET)\b/,'aguanieve','sleet'],[/\b(ENGELAMIENTO|ICING)\b/,'engelamiento','icing'],[/\b(ICEBERGS?|TEMPANOS?)\b/,'témpanos','icebergs']];
+const VW={BUENA:['buena','good'],GOOD:['buena','good'],REGULAR:['regular','moderate'],MODERATE:['regular','moderate'],MALA:['mala','poor'],POOR:['mala','poor'],MUY:['muy','very'],VERY:['muy','very'],A:['a','to'],TO:['a','to'],O:['o','or'],OR:['o','or'],OCNL:['ocasionalmente','occasionally'],OCCASIONALLY:['ocasionalmente','occasionally'],OCASIONALMENTE:['ocasionalmente','occasionally'],LOCALLY:['localmente','locally'],LOCALMENTE:['localmente','locally']};
+const L=()=>lang==='es';
+const BN=i=>BF[i]?.[L()?1:2].toLowerCase();
+
+function off(){return tzv==='dev'?-new Date().getTimezoneOffset()/60:+tzv}
+const tzl=o=>'UTC'+(o<0?'−':'+')+Math.abs(o);
+function toLocal(d,h,m){const now=new Date();let mo=now.getUTCMonth();const td=now.getUTCDate();if(d!=null&&d-td>15)mo--;if(d!=null&&td-d>15)mo++;const x=new Date(Date.UTC(now.getUTCFullYear(),mo,d??td,+h,+m)+off()*36e5);return {D:x.getUTCDate(),T:pad(x.getUTCHours())+':'+pad(x.getUTCMinutes())}}
+function times(t){const out=[];const ctx=i=>{const p=t.slice(Math.max(0,i-16),i);return /HASTA|UNTIL|TILL/.test(p)?1:/DESDE|PARTIR|FROM|AFTER/.test(p)?2:0};
+const W={es:['el','hasta el','desde el'],en:['on','until','from']};
+const push=(i,d,h,m)=>{const c=ctx(i),lo=toLocal(d,h,m),o=tzl(off());out.push([i,d!=null?(L()?`${W.es[c]} día ${+d} a las ${h}:${m} UTC = día ${lo.D}, ${lo.T} (${o})`:`${W.en[c]} day ${+d} at ${h}:${m} UTC = day ${lo.D}, ${lo.T} local (${o})`):(L()?`a las ${h}:${m} UTC = ${lo.T} (${o})`:`at ${h}:${m} UTC = ${lo.T} local (${o})`)])};
+for(const x of t.matchAll(/\b(\d{2})\/(\d{2})(\d{2})\b/g))push(x.index,x[1],x[2],x[3]);
+for(const x of t.matchAll(/\b(\d{2})(\d{2})(\d{2})\s*(?:UTC|Z)\b/g))push(x.index,x[1],x[2],x[3]);
+for(const x of t.matchAll(/\b(\d{2})(\d{2})\s*(?:UTC|Z)\b/g))push(x.index,null,x[1],x[2]);
+return out.sort((a,b)=>a[0]-b[0]).map(x=>x[1])}
+
+function winds(t){t=dirWords(t,true).replace(/\b(?:MOV|MOVING|MOVIENDOSE)\s+\w+(?:\s+(?:AT\s+|A\s+)?\d+\s*(?:KTS?|KNOTS|NUDOS))?/g,m=>' '.repeat(m.length));
+const re=/(?:^|[\s,.;:(])(?:SECTOR\s+|WIND\s+|VIENTO\s+)?(NNE|ENE|ESE|SSE|SSW|WSW|WNW|NNW|SSO|OSO|ONO|NNO|NE|SE|SW|NW|SO|NO|N|E|S|W|O|VRB|VARIABLES?)\s+(?:FORCE\s+|FUERZA\s+|F)?(\d{1,2})(?:\s*(?:\/|-|TO|OR|A|O)\s*(\d{1,2}))?(\s*(?:KTS?|KNOTS|NUDOS)\b)?(?!\d|\s*(?:W|S|HPA|M)\b)/g;
+return {t,ws:[...t.matchAll(re)].map(x=>{const a=+x[2],b=x[3]!=null?+x[3]:null,kt=!!x[4];return {d:/^V/.test(x[1])?null:x[1],a,b,kt,fa:kt?kt2bf(a):a,fb:kt?(b!=null?kt2bf(b):null):b,i:x.index,e:x.index+x[0].length}})}}
+function frange(a,b){const lo=BF[a],hi=BF[b??a];if(!lo||!hi)return '';const k=[lo[3].split('–')[0],hi[3].split('–').pop()],m=[lo[4].split('–')[0],hi[4].split('–').pop()];return `${k[0]}–${k[1]} kt, ${m[0]}–${m[1]} km/h`.replace('<1–','0–').replace(/(\d+)\+–\1\+/g,'$1+')}
+function wtext(w){const dn=dname(w.d);const two=w.fb!=null&&w.fb!==w.fa;
+if(w.kt){const km=x=>Math.round(x*1.852);const k=w.b!=null?`${w.a}–${w.b} kt`:`${w.a} kt`,kmh=w.b!=null?`${km(w.a)}–${km(w.b)} km/h`:`${km(w.a)} km/h`;const f=two?`${L()?'fuerza':'force'} ${w.fa}${L()?' a ':' to '}${w.fb}`:`${L()?'fuerza':'force'} ${w.fa}`;return L()?`viento ${dn?'del '+dn:'variable'} de ${k} (${kmh}, ${f})`:`${dn?dn:'variable'} wind ${k} (${kmh}, ${f})`}
+const f=two?(L()?`fuerza ${w.fa} a ${w.fb} (${BN(w.fa)} a ${BN(w.fb)})`:`force ${w.fa} to ${w.fb} (${BN(w.fa)} to ${BN(w.fb)})`):(L()?`fuerza ${w.fa} (${BN(w.fa)})`:`force ${w.fa} (${BN(w.fa)})`);
+return (L()?`viento ${dn?'del '+dn:'variable'} `:`${dn?dn:'variable'} wind `)+f+', '+frange(w.fa,w.fb)}
+function conn(p,c,bt){const T=L()?{b:'rola en sentido antihorario (BACK) a',v:'rola en sentido horario (VEER) a',cb:'rola en sentido antihorario a',cv:'rola en sentido horario a',c:'cambia a',up:'aumentando a',dn:'disminuyendo a',lt:'luego',tm:'por momentos',and:'y'}:{b:'backing (counterclockwise) to',v:'veering (clockwise) to',cb:'backing to',cv:'veering to',c:'becoming',up:'increasing to',dn:'decreasing to',lt:'later',tm:'at times',and:'and'};
+if(/\bBACK/.test(bt))return T.b;if(/\bVEER/.test(bt))return T.v;
+if(/ROTANDO|ROLANDO|CAMBIANDO|EVOLUCIONANDO|BECOMING|SHIFTING/.test(bt)){if(p.d&&c.d){const df=(DIRS[c.d]-DIRS[p.d]+360)%360;if(df)return df>180?T.cb:T.cv}return T.c}
+if(/AUMENTANDO|INCREASING/.test(bt))return T.up;if(/DISMINUYENDO|DECREASING|EASING|MODERATING/.test(bt))return T.dn;
+if(/LUEGO|LATER|THEN/.test(bt))return T.lt;if(/TEMPO|TEMPORAR|PERIOD|OCNL|OCCASIONAL|OCASIONAL/.test(bt))return T.tm;return T.and}
+
+function rose(ws,bt){const c=65,r=50,pt=(deg,rr)=>[c+rr*Math.sin(deg*Math.PI/180),c-rr*Math.cos(deg*Math.PI/180)];
+let s=`<svg class="rose" viewBox="0 0 130 130" role="img" aria-label="${L()?'Rosa de los vientos':'Wind rose'}"><circle cx="65" cy="65" r="${r}" fill="none" stroke="var(--line)" stroke-width="2"/>`;
+[['N',0],['E',90],['S',180],[L()?'O':'W',270]].forEach(([l,d])=>{const [x,y]=pt(d,r+9);s+=`<text x="${x}" y="${y+4}" text-anchor="middle" font-size="11" font-weight="600" fill="var(--mute)">${l}</text>`});
+const ok=ws.filter(w=>w.d);
+if(ok.length>1){const a0=DIRS[ok[ok.length-2].d],a1=DIRS[ok[ok.length-1].d];let df=(a1-a0+360)%360;const ccw=/BACK/.test(bt)||(!/VEER/.test(bt)&&df>180);if(ccw&&df)df-=360;if(df){const [sx,sy]=pt(a0,r),[ex,ey]=pt(a1,r);s+=`<path d="M${sx} ${sy} A${r} ${r} 0 ${Math.abs(df)>180?1:0} ${df>0?1:0} ${ex} ${ey}" fill="none" stroke="var(--yel)" stroke-width="5" stroke-linecap="round"/>`}}
+ok.forEach((w,i)=>{const last=i===ok.length-1,col=last?'var(--red)':'var(--mute)';const [x1,y1]=pt(DIRS[w.d],r-2),[x2,y2]=pt(DIRS[w.d],10);const ang=DIRS[w.d]+180;const a=o=>{const rad=(ang+o)*Math.PI/180;return [x2-9*Math.sin(rad),y2+9*Math.cos(rad)]};const [ax,ay]=a(25),[bx,by]=a(-25);
+s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${last?4:3}" stroke-linecap="round"/><polygon points="${x2},${y2} ${ax},${ay} ${bx},${by}" fill="${col}"/>`});
+return s+'</svg>'}
+
+function verdict(ws,gust){const mx=Math.max(...ws.map(w=>w.fb??w.fa));let lv=mx<=2?0:mx<=4?1:mx<=5?2:3;if(gust&&lv<3&&mx>=4)lv++;
+const T=L()?['Poco viento para navegar a vela','Viento cómodo para una salida','Exigente: solo con tripulación con experiencia y rizos','No recomendable para una salida recreativa']:['Too little wind for sailing','Comfortable sailing breeze','Demanding: experienced crew and reefs only','Not advisable for recreational sailing'];
+return `<span class="pill p${lv}">${L()?'Para navegar a vela: ':'Small-boat sailing: '}${T[lv]}${gust?(L()?' (hay ráfagas)':' (gusts)'):''}</span>`}
+
+function zone(name,t0,warn){const {t,ws}=winds(t0);const bt=ws.length>1?t.slice(ws[0].e,ws[ws.length-1].i):'';const out=[];
+ws.forEach((w,i)=>{const b=wtext(w);out.push(i?conn(ws[i-1],w,t.slice(ws[i-1].e,w.i))+' '+b:(L()?'Al principio, ':'At first, ')+b)});
+let p=ws.length?out.join('; ')+'.':'';p=p.charAt(0).toUpperCase()+p.slice(1);
+const gust=/RAFAGA|\bRAF\b|GUST|RACHA/.test(t0);if(gust){const g=t0.match(/(?:RAFAGAS?|GUSTS?|GUSTING|RACHAS?)\s+(?:DE\s+|OF\s+|TO\s+|UP TO\s+|HASTA\s+)?(?:FUERZA\s+|FORCE\s+)?(\d{1,3})\s*(KTS?|KNOTS|NUDOS|KM\/H|KMH)?/);let gv='';if(g){const u=g[2]?(/KM/.test(g[2])?'km/h':'kt'):(+g[1]<=12?'F':'kt');gv=u==='F'?(L()?` de fuerza ${g[1]}`:` of force ${g[1]}`):(L()?` de ${g[1]} ${u}`:` of ${g[1]} ${u}`)}p+=(L()?' Con ráfagas':' With gusts')+gv+'.'}
+const tm=times(t0);if(tm.length)p+=(L()?' Momento indicado: ':' Timing: ')+tm.join('; ')+'.';
+const ph=[];PHEN.forEach(([r,a,b])=>{if(r.test(t0))ph.push(L()?a:b)});if(ph.length)p+=/PROB|POSSIBLE|CHANCE/.test(t0)?(L()?` Probabilidad de ${ph.join(', ')}.`:` Chance of ${ph.join(', ')}.`):(L()?` Se esperan: ${ph.join(', ')}.`:` Expected: ${ph.join(', ')}.`);
+const v=t0.match(/\b(?:VIS|VISIBILITY|VISIBILIDAD)\s+((?:(?:MUY|VERY)\s+)?(?:BUENA|REGULAR|MALA|GOOD|MODERATE|POOR)(?:\s*(?:A|TO|,|OR|O|OCNL|OCCASIONALLY|OCASIONALMENTE|LOCALLY|LOCALMENTE)\s*(?:(?:MUY|VERY)\s+)?(?:BUENA|REGULAR|MALA|GOOD|MODERATE|POOR))*)/);
+if(v)p+=(L()?' Visibilidad ':' Visibility ')+v[1].split(/\s+|(?=,)/).map(w=>VW[w]?VW[w][L()?0:1]:w.toLowerCase()).join(' ').replace(/ ,/g,',')+'.';
+const sa=[...SEA_EN,...SEA_ES].sort((a,b)=>b.length-a.length).join('|');const sm=t0.match(new RegExp(`\\b(?:SEA|MAR)\\s+(${sa})\\b(?:\\s*(?:TO|A|OR|O)\\s*(${sa})\\b)?`));
+if(sm){const g=w=>{let i=SEA_EN.indexOf(w);if(i<0)i=SEA_ES.indexOf(w);return i};const i1=g(sm[1]),i2=sm[2]?g(sm[2]):-1;const nm=i=>DG[i][L()?1:2].toLowerCase();p+=(L()?' Mar ':' Sea ')+nm(i1)+(i2>=0?(L()?' a ':' to ')+nm(i2):'')+` (${DG[i1][3].split('–')[0].replace(' m','')}–${DG[i2>=0?i2:i1][3].split('–').pop()}).`.replace('(0 m–0 m)','(0 m)').replace(/(\d),(\d)/g,L()?'$1,$2':'$1.$2')}
+const wv=t0.match(/\b(?:WAVES?|OLAS?|HS|ALTURA)\s+(?:DE\s+|OF\s+)?(\d+(?:[.,]\d+)?)\s*(?:(?:A|TO|-|\/)\s*(\d+(?:[.,]\d+)?))?\s*M\b/);if(wv)p+=(L()?` Olas de ${wv[1]}${wv[2]?' a '+wv[2]:''} m.`:` Waves ${wv[1]}${wv[2]?' to '+wv[2]:''} m.`);
+if(/SWELL|MAR DE FONDO/.test(t0))p+=L()?' Hay mar de fondo.':' Swell present.';
+if(!p&&!warn)return null;
+const ok=ws.some(w=>w.d);
+return `<article class="card${ok?'':' solo'}"><div><h3>${esc(name)}</h3>${warn?`<span class="pill p3">${L()?'Aviso vigente':'Warning in force'}: ${esc(warn)}</span>`:''}<p>${esc(p)}</p>${ws.length?verdict(ws,gust):''}<div class="raw">${esc(t0)}</div></div>${ok?rose(ws,bt):''}</article>`}
+
+function dirAny(w){w=dirWords(w,false);return DIRS[w]!=null?w:null}
+function pos(lat,lon){const f=(s,dl)=>s.length>dl?`${+s.slice(0,s.length-2)}°${s.slice(-2)}′`:`${+s}°`;return `${f(lat,2)} S ${f(lon,3)} ${L()?'O':'W'}`}
+function synop(name,t){const N={LOW:['Baja presión','Low'],HIGH:['Alta presión','High'],CF:['Frente frío','Cold front'],WF:['Frente cálido','Warm front'],OF:['Frente ocluido','Occluded front'],SF:['Frente estacionario','Stationary front'],TR:['Vaguada','Trough'],RI:['Dorsal','Ridge']};
+const parts=t.split(/\.\s+|\.$/).filter(s=>s.trim()).map(s=>{let k=null;
+if(/DEPRESION|DEPRESSION/.test(s))k='LOW';else if(/ANTICICLON/.test(s))k='HIGH';else if(/CFNT|FRENTE FRIO|COLD FRONT/.test(s))k='CF';else if(/WFNT|FRENTE CALIDO|WARM FRONT/.test(s))k='WF';else if(/OFNT|OCLUIDO|OCCLUDED/.test(s))k='OF';else if(/ESTACIONARIO FRENTE|FRENTE ESTACIONARIO|STATIONARY FRONT/.test(s))k='SF';else if(/VAGUADA|TROUGH/.test(s))k='TR';else if(/DORSAL|RIDGE/.test(s))k='RI';
+else if(/\b(LOW|BAJA)\b/.test(s)&&/HPA|\d{2}S/.test(s))k='LOW';else if(/\b(HIGH|ALTA)\b/.test(s)&&/HPA|\d{2}S/.test(s))k='HIGH';
+if(!k)return null;const lowish=k==='LOW';const r=[];let first=N[k][L()?0:1];
+const h=s.match(/(\d{3,4})\s*HPA/);if(h)first+=L()?` de ${h[1]} hPa`:` ${h[1]} hPa`;
+const ps=[...s.matchAll(/\b(\d{2,4})S\s*(\d{2,5})W\b/g)].map(x=>pos(x[1],x[2]));if(ps.length)first+=(ps.length>1?(L()?' que pasa por ':' along '):(L()?' centrada en ':' centred at '))+ps.join(', ');r.push(first);
+const mv=s.match(/(?:\bMOV|MOVING|MOVIENDOSE|SE DESPLAZA(?:\s+AL|\s+HACIA\s+EL)?)\s+([A-Z-]+)/);if(mv){const d=dirAny(mv[1]);if(d){let m=L()?`se desplaza hacia el ${dname(d)}`:`moving ${dname(d)}`;const sp=s.match(/(\d{1,2})\s*(?:KTS?|KNOTS|NUDOS)/);if(sp)m+=L()?` a ${sp[1]} kt`:` at ${sp[1]} kt`;if(/SLOW|LENT/.test(s))m+=L()?' lentamente':' slowly';if(/QUICK|RAPID|FAST/.test(s))m+=L()?' rápido':' quickly';r.push(m)}}
+if(/\bSTNR|QSTNR|STATIONARY|ESTACIONARI/.test(s)&&k!=='SF')r.push(L()?'casi sin moverse':'almost stationary');
+if(/\bDPN|DEEPENING|PROFUNDIZ/.test(s))r.push(lowish?(L()?'se profundiza (baja la presión, se intensifica)':'deepening (pressure falling, intensifying)'):(L()?'se intensifica':'intensifying'));
+if(/\bWKN|WEAKENING|DEBILIT/.test(s))r.push(lowish?(L()?'se debilita (su presión central sube)':'weakening (central pressure rising)'):(L()?'se debilita':'weakening'));
+if(/\bFILL/.test(s))r.push(L()?'se rellena (sube la presión)':'filling (pressure rising)');if(/INTSF|INTENSIF/.test(s))r.push(L()?'se intensifica':'intensifying');
+return r.join(', ')+'.'}).filter(Boolean);if(!parts.length)return null;
+return `<article class="card solo"><div><h3>${esc(name)}</h3>${parts.map(x=>`<p>${esc(x)}</p>`).join('')}<div class="raw">${esc(t)}</div></div></article>`}
+
+const KNOWN=new Set();G.forEach(g=>g[1].split(/[\s\/·-]+/).forEach(w=>KNOWN.add(norm(w))));
+('SECTOR CON DE EL LA LAS LOS DEL A Y EN AL HASTA DESDE PARTIR VIS MAR RAFAGAS RAFAGA FUERZA AREA ZONA RESTO PLATA INTERIOR EXTERIOR CENTRO NORTE SUR ESTE OESTE NORESTE NORDESTE NOROESTE SUDESTE SURESTE SUDOESTE SUROESTE COSTA LITORAL ROLANDO PERIODOS EVOLUCIONANDO LLUVIAS CHAPARRON TORMENTA PRONOSTICO VALIDO UTC SE SW NW VARIABLES MONTANOSA MUY GRUESA MAREJADA MAREJADILLA RIZADA ARBOLADA ENORME '
++'WIND WITH ON OF THE AND IN AT TO OR UNTIL FROM BY AFTER SEA GOOD MODERATE POOR VERY ROUGH SLIGHT SMOOTH RIPPLED HIGH PHENOMENAL LOW GALE WARNING STORM FORECAST VALID ISSUED SITUATION GENERAL SYNOPSIS INNER OUTER CENTRE CENTER NORTH SOUTH EAST WEST NORTHERLY SOUTHERLY EASTERLY WESTERLY NORTHEAST NORTHWEST SOUTHEAST SOUTHWEST GUST GUSTING SHOWER M KTS FORCE PROBABILITY CHANCE EXPECTED MOVIENDOSE SHIFTING MODERATING FAST RAPIDO LENTO TILL REST').split(' ').forEach(w=>KNOWN.add(w));
+
+let last='';
+function report(){const raw=$('#txt').value;try{localStorage.setItem('metarea-txt',raw)}catch(e){}
+const t=norm(raw).replace(/\r/g,'');if(!t.trim()){$('#rep').innerHTML=`<p class="empty">${L()?'Pegá un boletín arriba.':'Paste a bulletin above.'}</p>`;return}
+const re=/([A-Z][A-Z0-9 ,()\/-]{2,70}?):/g;const hs=[];let m;
+while(m=re.exec(t)){if(/(^|[\n.:])\s*$/.test(t.slice(Math.max(0,m.index-3),m.index))||m.index===0)hs.push({n:m[1].trim(),i:m.index,e:m.index+m[0].length});else re.lastIndex=m.index+1}
+const segs=[];if(!hs.length)segs.push({n:L()?'Boletín':'Bulletin',t});else{if(t.slice(0,hs[0].i).trim())segs.push({n:L()?'Encabezado':'Header',t:t.slice(0,hs[0].i)});hs.forEach((h,k)=>segs.push({n:h.n,t:t.slice(h.e,k+1<hs.length?hs[k+1].i:t.length)}))}
+let html='',warn='';const hits=new Map(),unk=new Set();
+segs.forEach(s=>{const tt=s.t.replace(/\s+/g,' ').trim();const isW=/WARNING|AVISO/.test(s.n);if(!tt){if(isW)warn=s.n;return}
+(tt.match(/\b[A-Z]{2,}\b/g)||[]).forEach(w=>{if(!KNOWN.has(w))unk.add(w)});
+const isSyn=/SITUACION|SINOPTIC|SYNOPSIS|GENERAL SITUATION/.test(s.n)||(/DEPRESION|DEPRESSION|ANTICICLON|CFNT|FRONT|FRENTE|VAGUADA|TROUGH|DORSAL|RIDGE|\bLOW\b.*HPA/.test(tt)&&!winds(tt).ws.length);
+const w=isW?s.n:warn;warn='';
+html+=(isSyn?synop(s.n,tt):zone(s.n,tt,w))||synop(s.n,tt)||`<article class="card solo"><div><h3>${esc(s.n)}</h3><p>${L()?'No encontré viento ni sistemas en esta parte.':'No wind or weather systems found in this part.'}</p><div class="raw">${esc(tt)}</div></div></article>`});
+G.forEach(g=>{if(g[0]==='dir')return;g[1].split(/\s*[\/·]\s*/).forEach(k=>{const kk=norm(k);if(kk.length>1&&!/\d|DD|-ERLY/.test(kk)&&new RegExp('(^|[^A-Z])'+kk.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([^A-Z]|$)').test(t))hits.set(g[1],g[L()?2:3])})});
+html+=`<article class="card solo"><div><h3>${L()?'Abreviaturas de este boletín':'Abbreviations in this bulletin'}</h3><div class="chips">${[...hits].map(([k,v])=>`<span class="chip"><b>${esc(k)}</b> · ${esc(v)}</span>`).join('')||`<span class="empty">${L()?'Ninguna del glosario.':'None from the glossary.'}</span>`}</div>${unk.size?`<h3 style="margin-top:14px;font-size:18px">${L()?'Palabras sin traducir':'Untranslated words'}</h3><div class="chips">${[...unk].slice(0,40).map(w=>`<span class="chip">${esc(w)}</span>`).join('')}</div>`:''}</div></article>`;
+$('#rep').innerHTML=html;$('#msg').textContent=L()?'Informe listo':'Report ready'}
+
+function copy(){const txt=[...document.querySelectorAll('#rep .card')].map(c=>(c.querySelector('h3')?.textContent||'')+'\n'+[...c.querySelectorAll('p,.pill')].map(p=>p.textContent).join('\n')).join('\n\n');navigator.clipboard.writeText(txt).then(()=>$('#msg').textContent=L()?'Copiado':'Copied',()=>$('#msg').textContent=L()?'No se pudo copiar':'Could not copy')}
+
+let cat='all';
+function gl(){const q=norm($('#q').value.trim());const rows=G.filter(g=>(cat==='all'||g[0]===cat)&&(!q||norm(g.join(' ')).includes(q)));$('#gl').innerHTML=rows.map(g=>`<tr><td class="k">${esc(g[1])}</td><td>${esc(g[L()?2:3])}</td><td class="ex">${esc(g[4])}</td></tr>`).join('')||`<tr><td colspan="3" class="empty">${L()?'Sin resultados.':'No results.'}</td></tr>`}
+function cats(){$('#cats').innerHTML=[['all',S[lang].all],...Object.entries(CAT).map(([k,v])=>[k,v[L()?0:1]])].map(([k,v])=>`<button class="cat" aria-pressed="${k===cat}" data-c="${k}">${esc(v)}</button>`).join('')}
+const PL={'-3':'Argentina · Uruguay · Brasília','-4':'Chile (invierno/winter) · Manaus','-2':'Fernando de Noronha','-5':'Perú · Ecuador · Colombia','0':'UTC / Z','1':'Europa central / Central Europe','2':'Sudáfrica / South Africa','-1':'Azores','12':'Nueva Zelanda / New Zealand'};
+function tzOpts(){let h=`<option value="dev">${esc(S[lang].dev)}</option>`;for(let o=-12;o<=12;o++)h+=`<option value="${o}">${tzl(o)}${PL[o]?' · '+PL[o]:''}</option>`;$('#tz').innerHTML=h;$('#tz').value=tzv}
+function apply(){document.documentElement.lang=lang;document.querySelectorAll('[data-t]').forEach(e=>e.innerHTML=S[lang][e.dataset.t]);document.title=S[lang].title;$('#q').placeholder=S[lang].glPh;$('#q').setAttribute('aria-label',S[lang].glH);
+document.querySelectorAll('.lang button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lang===lang));
+$('#bf').innerHTML=BF.map(r=>`<tr><td class="n">${r[0]}</td><td>${r[L()?1:2]}</td><td class="n">${r[3]}</td><td class="n">${r[4]}</td><td>${r[L()?5:6]}</td></tr>`).join('');
+$('#dg').innerHTML=DG.map(r=>`<tr><td class="n">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td class="n">${L()?r[3]:r[3].replace(/,/g,'.')}</td></tr>`).join('');
+$('#vt').innerHTML=VT.map(r=>`<tr><td><b>${r[L()?0:1]}</b> <span class="note">· ${r[L()?1:0]}</span></td><td class="n">${r[2]}</td></tr>`).join('');
+tzOpts();cats();gl();report()}
+
+document.querySelector('.lang').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;lang=b.dataset.lang;try{localStorage.setItem('metarea-lang',lang)}catch(x){}apply()});
+$('#tz').addEventListener('change',e=>{tzv=e.target.value;try{localStorage.setItem('metarea-tz',tzv)}catch(x){}report()});
+$('#cats').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cat=b.dataset.c;cats();gl()});
+$('#q').addEventListener('input',gl);
+$('#go').addEventListener('click',report);$('#cp').addEventListener('click',copy);
+$('#ejEs').addEventListener('click',()=>{$('#txt').value=EJ.es;report()});$('#ejEn').addEventListener('click',()=>{$('#txt').value=EJ.en;report()});
+let saved=null;try{saved=localStorage.getItem('metarea-txt')}catch(e){}
+$('#txt').value=saved||EJ[lang];apply();
+}
+</script>
+</body>
+</html>
