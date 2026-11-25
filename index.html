@@ -317,16 +317,20 @@ return out.sort((a,b)=>a[0]-b[0]).map(x=>x[1])}
 
 function winds(t){t=dirWords(t,true).replace(/\b(?:MOV|MOVING|MOVIENDOSE)\s+\w+(?:\s+(?:AT\s+|A\s+)?\d+\s*(?:KTS?|KNOTS|NUDOS))?/g,m=>' '.repeat(m.length));
 const re=/(?:^|[\s,.;:(])(?:SECTOR\s+|WIND\s+|VIENTO\s+)?(NNE|ENE|ESE|SSE|SSW|WSW|WNW|NNW|SSO|OSO|ONO|NNO|NE|SE|SW|NW|SO|NO|N|E|S|W|O|VRB|VARIABLES?)\s+(?:FORCE\s+|FUERZA\s+|F)?(\d{1,2})(?:\s*(?:\/|-|TO|OR|A|O)\s*(\d{1,2}))?(\s*(?:KTS?|KNOTS|NUDOS)\b)?(?!\d|\s*(?:W|S|HPA|M)\b)/g;
-return {t,ws:[...t.matchAll(re)].map(x=>{const a=+x[2],b=x[3]!=null?+x[3]:null,kt=!!x[4];return {d:/^V/.test(x[1])?null:x[1],a,b,kt,fa:kt?kt2bf(a):a,fb:kt?(b!=null?kt2bf(b):null):b,i:x.index,e:x.index+x[0].length}})}}
-function frange(a,b){const lo=BF[a],hi=BF[b??a];if(!lo||!hi)return '';const k=[lo[3].split('–')[0],hi[3].split('–').pop()],m=[lo[4].split('–')[0],hi[4].split('–').pop()];return `${k[0]}–${k[1]} kt, ${m[0]}–${m[1]} km/h`.replace('<1–','0–').replace(/(\d+)\+–\1\+/g,'$1+')}
+const D='NNE|ENE|ESE|SSE|SSW|WSW|WNW|NNW|SSO|OSO|ONO|NNO|NE|SE|SW|NW|SO|NO|N|E|S|W|O';
+const A=[...t.matchAll(re)].map(x=>{const a=+x[2],b=x[3]!=null?+x[3]:null,kt=!!x[4];return {d:/^V/.test(x[1])?null:x[1],a,b,kt,fa:kt?kt2bf(a):a,fb:kt?(b!=null?kt2bf(b):null):b,i:x.index,e:x.index+x[0].length}});
+const re2=new RegExp(`(?:FUERZA|FORCE)\\s+(\\d{1,2})(?:\\s*(?:\\/|-|TO|A)\\s*(\\d{1,2}))?\\s+(?:DEL|FROM(?: THE)?|DE)\\s+(?:SECTOR\\s+)?(${D})\\b`,'g');
+for(const x of t.matchAll(re2)){if(A.some(w=>x.index<w.e&&w.i<x.index+x[0].length))continue;const a=+x[1],b=x[2]!=null?+x[2]:null;A.push({d:x[3],a,b,kt:false,fa:a,fb:b,i:x.index,e:x.index+x[0].length})}
+return {t,ws:A.sort((p,q)=>p.i-q.i)}}
+function frange(a,b){if(b!=null&&b<a)[a,b]=[b,a];const lo=BF[a],hi=BF[b??a];if(!lo||!hi)return '';const k=[lo[3].split('–')[0],hi[3].split('–').pop()],m=[lo[4].split('–')[0],hi[4].split('–').pop()];return `${k[0]}–${k[1]} kt, ${m[0]}–${m[1]} km/h`.replace('<1–','0–').replace(/(\d+)\+–\1\+/g,'$1+')}
 function wtext(w){const dn=dname(w.d);const two=w.fb!=null&&w.fb!==w.fa;
 if(w.kt){const km=x=>Math.round(x*1.852);const k=w.b!=null?`${w.a}–${w.b} kt`:`${w.a} kt`,kmh=w.b!=null?`${km(w.a)}–${km(w.b)} km/h`:`${km(w.a)} km/h`;const f=two?`${L()?'fuerza':'force'} ${w.fa}${L()?' a ':' to '}${w.fb}`:`${L()?'fuerza':'force'} ${w.fa}`;return L()?`viento ${dn?'del '+dn:'variable'} de ${k} (${kmh}, ${f})`:`${dn?dn:'variable'} wind ${k} (${kmh}, ${f})`}
-const f=two?(L()?`fuerza ${w.fa} a ${w.fb} (${BN(w.fa)} a ${BN(w.fb)})`:`force ${w.fa} to ${w.fb} (${BN(w.fa)} to ${BN(w.fb)})`):(L()?`fuerza ${w.fa} (${BN(w.fa)})`:`force ${w.fa} (${BN(w.fa)})`);
+const dn2=two&&w.fb<w.fa;const f=two?(L()?`fuerza ${w.fa} ${dn2?'bajando a':'a'} ${w.fb} (${BN(w.fa)} ${dn2?'bajando a':'a'} ${BN(w.fb)})`:`force ${w.fa} ${dn2?'easing to':'to'} ${w.fb} (${BN(w.fa)} ${dn2?'easing to':'to'} ${BN(w.fb)})`):(L()?`fuerza ${w.fa} (${BN(w.fa)})`:`force ${w.fa} (${BN(w.fa)})`);
 return (L()?`viento ${dn?'del '+dn:'variable'} `:`${dn?dn:'variable'} wind `)+f+', '+frange(w.fa,w.fb)}
 function conn(p,c,bt){const T=L()?{b:'rola en sentido antihorario (BACK) a',v:'rola en sentido horario (VEER) a',cb:'rola en sentido antihorario a',cv:'rola en sentido horario a',c:'cambia a',up:'aumentando a',dn:'disminuyendo a',lt:'luego',tm:'por momentos',and:'y'}:{b:'backing (counterclockwise) to',v:'veering (clockwise) to',cb:'backing to',cv:'veering to',c:'becoming',up:'increasing to',dn:'decreasing to',lt:'later',tm:'at times',and:'and'};
 if(/\bBACK/.test(bt))return T.b;if(/\bVEER/.test(bt))return T.v;
 if(/ROTANDO|ROLANDO|CAMBIANDO|EVOLUCIONANDO|BECOMING|SHIFTING/.test(bt)){if(p.d&&c.d){const df=(DIRS[c.d]-DIRS[p.d]+360)%360;if(df)return df>180?T.cb:T.cv}return T.c}
-if(/AUMENTANDO|INCREASING/.test(bt))return T.up;if(/DISMINUYENDO|DECREASING|EASING|MODERATING/.test(bt))return T.dn;
+if(/AUMENTANDO|INCREASING|\bINCR\b/.test(bt))return T.up;if(/DISMINUYENDO|DECREASING|EASING|MODERATING|\bDECR\b/.test(bt))return T.dn;
 if(/LUEGO|LATER|THEN/.test(bt))return T.lt;if(/TEMPO|TEMPORAR|PERIOD|OCNL|OCCASIONAL|OCASIONAL/.test(bt))return T.tm;return T.and}
 
 function rose(ws,bt){const c=65,r=50,pt=(deg,rr)=>[c+rr*Math.sin(deg*Math.PI/180),c-rr*Math.cos(deg*Math.PI/180)];
@@ -338,14 +342,15 @@ ok.forEach((w,i)=>{const last=i===ok.length-1,col=last?'var(--rf)':'var(--rm)';c
 s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="${last?4:3}" stroke-linecap="round"/><polygon points="${x2},${y2} ${ax},${ay} ${bx},${by}" fill="${col}"/>`});
 return s+'</svg>'}
 
-function verdict(ws,gust){const mx=Math.max(...ws.map(w=>w.fb??w.fa));let lv=mx<=2?0:mx<=4?1:mx<=5?2:3;if(gust&&lv<3&&mx>=4)lv++;
+function verdict(ws,gust){const mx=Math.max(...ws.map(w=>Math.max(w.fa,w.fb??w.fa)));let lv=mx<=2?0:mx<=4?1:mx<=5?2:3;if(gust&&lv<3&&mx>=4)lv++;
 const T=L()?['Poco viento para navegar a vela','Viento cómodo para una salida','Exigente: solo con tripulación con experiencia y rizos','No recomendable para una salida recreativa']:['Too little wind for sailing','Comfortable sailing breeze','Demanding: experienced crew and reefs only','Not advisable for recreational sailing'];
 return `<span class="pill p${lv}">${L()?'Para navegar a vela: ':'Small-boat sailing: '}${T[lv]}${gust?(L()?' (hay ráfagas)':' (gusts)'):''}</span>`}
 
 function zone(name,t0,warn){const {t,ws}=winds(t0);const bt=ws.length>1?t.slice(ws[0].e,ws[ws.length-1].i):'';const out=[];
 ws.forEach((w,i)=>{const b=wtext(w);out.push(i?conn(ws[i-1],w,t.slice(ws[i-1].e,w.i))+' '+b:(L()?'Al principio, ':'At first, ')+b)});
 let p=ws.length?out.join('; ')+'.':'';p=p.charAt(0).toUpperCase()+p.slice(1);
-const gust=/RAFAGA|\bRAF\b|GUST|RACHA/.test(t0);if(gust){const g=t0.match(/(?:RAFAGAS?|GUSTS?|GUSTING|RACHAS?)\s+(?:DE\s+|OF\s+|TO\s+|UP TO\s+|HASTA\s+)?(?:FUERZA\s+|FORCE\s+)?(\d{1,3})\s*(KTS?|KNOTS|NUDOS|KM\/H|KMH)?/);let gv='';if(g){const u=g[2]?(/KM/.test(g[2])?'km/h':'kt'):(+g[1]<=12?'F':'kt');gv=u==='F'?(L()?` de fuerza ${g[1]}`:` of force ${g[1]}`):(L()?` de ${g[1]} ${u}`:` of ${g[1]} ${u}`)}p+=(L()?' Con ráfagas':' With gusts')+gv+'.'}
+const gust=/RAFAGA|\bRAF\b|GUST|RACHA/.test(t0);if(gust){const g=t0.match(/(?:RAFAGAS?|GUSTS?|GUSTING|RACHAS?)\s+(?:CON INTENSIDAD\s+|DE INTENSIDAD\s+|DE\s+|OF\s+|TO\s+|UP TO\s+|HASTA\s+)?(?:FUERZA\s+|FORCE\s+)?(\d{1,3})\s*(KTS?|KNOTS|NUDOS|KM\/H|KMH)?/);let gv='';if(g){const u=g[2]?(/KM/.test(g[2])?'km/h':'kt'):(+g[1]<=12?'F':'kt');gv=u==='F'?(L()?` de fuerza ${g[1]}`:` of force ${g[1]}`):(L()?` de ${g[1]} ${u}`:` of ${g[1]} ${u}`)}p+=(L()?' Con ráfagas':' With gusts')+gv+'.'}
+const ar=t0.match(/ENTRE\s+(\d{1,2})S\s*-\s*(\d{1,2})S\s+(\d{1,3})W\s*-\s*(\d{1,3})W/);if(ar)p+=L()?` Zona: entre ${ar[1]}° y ${ar[2]}° S, ${ar[3]}° y ${ar[4]}° O.`:` Area: ${ar[1]}°–${ar[2]}° S, ${ar[3]}°–${ar[4]}° W.`;
 const tm=times(t0);if(tm.length)p+=(L()?' Momento indicado: ':' Timing: ')+tm.join('; ')+'.';
 const ph=[];PHEN.forEach(([r,a,b])=>{if(r.test(t0))ph.push(L()?a:b)});if(ph.length)p+=/PROB|POSSIBLE|CHANCE/.test(t0)?(L()?` Probabilidad de ${ph.join(', ')}.`:` Chance of ${ph.join(', ')}.`):(L()?` Se esperan: ${ph.join(', ')}.`:` Expected: ${ph.join(', ')}.`);
 const v=t0.match(/\b(?:VIS|VISIBILITY|VISIBILIDAD)\s+((?:(?:MUY|VERY)\s+)?(?:BUENA|REGULAR|MALA|GOOD|MODERATE|POOR)(?:\s*(?:A|TO|,|OR|O|OCNL|OCCASIONALLY|OCASIONALMENTE|LOCALLY|LOCALMENTE)\s*(?:(?:MUY|VERY)\s+)?(?:BUENA|REGULAR|MALA|GOOD|MODERATE|POOR))*)/);
@@ -357,23 +362,34 @@ if(/SWELL|MAR DE FONDO/.test(t0))p+=L()?' Hay mar de fondo.':' Swell present.';
 if(!p&&!warn)return null;
 const ok=ws.some(w=>w.d);const lw=ws[ws.length-1];const big=lw?(lw.fb!=null&&lw.fb!==lw.fa?lw.fa+'–'+lw.fb:String(lw.fa)):'';
 const it=interp(name,ws,t,t0,gust,v?v[1]:'');
-return `<article class="card z"><header class="ch"><span class="tag">${L()?'Pronóstico':'Forecast'}</span><h3>${esc(name)}</h3>${warn?`<span class="pill p3">${L()?'Aviso vigente':'Warning in force'}: ${esc(warn)}</span>`:''}</header>${big||ok?`<div class="cb">${big?`<div class="big"><b>${big}</b><span>${S[lang].big}</span></div>`:''}${ok?rose(ws,bt):''}</div>`:''}<div class="ct">${timeline(ws,t)}<p>${esc(p)}</p>${ws.length?verdict(ws,gust):''}${intBox(it)}${rawBox(t0)}</div></article>`}
+return `<article class="card z"><header class="ch"><span class="tag">${L()?'Pronóstico':'Forecast'}</span><h3>${esc(name)}</h3>${warn?`<span class="pill p3">${L()?'Aviso vigente':'Warning in force'}${warn===name?'':': '+esc(warn)}</span>`:''}</header>${big||ok?`<div class="cb">${big?`<div class="big"><b>${big}</b><span>${S[lang].big}</span></div>`:''}${ok?rose(ws,bt):''}</div>`:''}<div class="ct">${timeline(ws,t)}<p>${esc(p)}</p>${ws.length?verdict(ws,gust):''}${intBox(it)}${rawBox(t0)}</div></article>`}
 
 function dirAny(w){w=dirWords(w,false);return DIRS[w]!=null?w:null}
 function pos(lat,lon){const f=(s,dl)=>s.length>dl?`${+s.slice(0,s.length-2)}°${s.slice(-2)}′`:`${+s}°`;return `${f(lat,2)} S ${f(lon,3)} ${L()?'O':'W'}`}
 function synop(name,t){const N={LOW:['Baja presión','Low'],HIGH:['Alta presión','High'],CF:['Frente frío','Cold front'],WF:['Frente cálido','Warm front'],OF:['Frente ocluido','Occluded front'],SF:['Frente estacionario','Stationary front'],TR:['Vaguada','Trough'],RI:['Dorsal','Ridge']};
-const parts=t.split(/\.\s+|\.$/).filter(s=>s.trim()).map(s=>{let k=null;
+const ice=t.match(/\d\.\s*LIMITE DE HIELO[\s\S]*?(?=\b(?:DEPRESION|DEPRESSION|ANTICICLON|\bLOW\b|\bHIGH\b|CFNT|FRENTE|COLD FRONT)\b|$)/);
+const t2=ice?t.replace(ice[0],' '):t;
+const parts=t2.split(/\.\s+|\.$|(?=\b(?:DEPRESION|DEPRESSION|ANTICICLON|CFNT|WFNT|OFNT|COLD FRONT|WARM FRONT|FRENTE|VAGUADA|TROUGH|DORSAL|RIDGE)\b)|(?=\b(?:LOW|HIGH|BAJA|ALTA)\s+\d{3,4}\s*HPA)/).filter(s=>s.trim()).map(s=>{let k=null;
 if(/DEPRESION|DEPRESSION/.test(s))k='LOW';else if(/ANTICICLON/.test(s))k='HIGH';else if(/CFNT|FRENTE FRIO|COLD FRONT/.test(s))k='CF';else if(/WFNT|FRENTE CALIDO|WARM FRONT/.test(s))k='WF';else if(/OFNT|OCLUIDO|OCCLUDED/.test(s))k='OF';else if(/ESTACIONARIO FRENTE|FRENTE ESTACIONARIO|STATIONARY FRONT/.test(s))k='SF';else if(/VAGUADA|TROUGH/.test(s))k='TR';else if(/DORSAL|RIDGE/.test(s))k='RI';
 else if(/\b(LOW|BAJA)\b/.test(s)&&/HPA|\d{2}S/.test(s))k='LOW';else if(/\b(HIGH|ALTA)\b/.test(s)&&/HPA|\d{2}S/.test(s))k='HIGH';
 if(!k)return null;const lowish=k==='LOW';const r=[];let first=N[k][L()?0:1];
 const h=s.match(/(\d{3,4})\s*HPA/);if(h)first+=L()?` de ${h[1]} hPa`:` ${h[1]} hPa`;
-const ps=[...s.matchAll(/\b(\d{2,4})S\s*(\d{2,5})W\b/g)].map(x=>pos(x[1],x[2]));if(ps.length)first+=(ps.length>1?(L()?' que pasa por ':' along '):(L()?' centrada en ':' centred at '))+ps.join(', ');r.push(first);
+const ex=s.match(/\bEXP(?:ECTED)?\s+(?:EN\s+|AT\s+|NEAR\s+)?(\d{2,4})S\s*(\d{2,5})W(?:\s+(?:EL|BY|AT|ON)\s+(\d{2})\/(\d{2})(\d{2}))?/);
+const sc=ex?s.replace(ex[0],' '):s;
+const ps=[...sc.matchAll(/\b(\d{2,4})S\s*(\d{2,5})W\b/g)].map(x=>pos(x[1],x[2]));if(ps.length)first+=(ps.length>1?(L()?' que pasa por ':' along '):(L()?' centrada en ':' centred at '))+ps.join(', ');r.push(first);
 const mv=s.match(/(?:\bMOV|MOVING|MOVIENDOSE|SE DESPLAZA(?:\s+AL|\s+HACIA\s+EL)?)\s+([A-Z-]+)/);if(mv){const d=dirAny(mv[1]);if(d){let m=L()?`se desplaza hacia el ${dname(d)}`:`moving ${dname(d)}`;const sp=s.match(/(\d{1,2})\s*(?:KTS?|KNOTS|NUDOS)/);if(sp)m+=L()?` a ${sp[1]} kt`:` at ${sp[1]} kt`;if(/SLOW|LENT/.test(s))m+=L()?' lentamente':' slowly';if(/QUICK|RAPID|FAST/.test(s))m+=L()?' rápido':' quickly';r.push(m)}}
+if(ex){const lo=ex[3]?toLocal(ex[3],ex[4],ex[5]):null;r.push((L()?'se espera en ':'expected at ')+pos(ex[1],ex[2])+(lo?(L()?` el día ${+ex[3]} a las ${ex[4]}:${ex[5]} UTC (= día ${lo.D}, ${lo.T} ${tzl(off())})`:` on day ${+ex[3]} at ${ex[4]}:${ex[5]} UTC (= day ${lo.D}, ${lo.T} ${tzl(off())})`):''))}
+if(/\bNOT MOV|\bNO MOV|\bSIN MOV/.test(s))r.push(L()?'casi sin moverse':'almost stationary');
+if(/\bNC\b|NO CHANGE|SIN CAMBIOS/.test(s))r.push(L()?'sin cambios':'no change');
 if(/\bSTNR|QSTNR|STATIONARY|ESTACIONARI/.test(s)&&k!=='SF')r.push(L()?'casi sin moverse':'almost stationary');
 if(/\bDPN|DEEPENING|PROFUNDIZ/.test(s))r.push(lowish?(L()?'se profundiza (baja la presión, se intensifica)':'deepening (pressure falling, intensifying)'):(L()?'se intensifica':'intensifying'));
 if(/\bWKN|WEAKENING|DEBILIT/.test(s))r.push(lowish?(L()?'se debilita (su presión central sube)':'weakening (central pressure rising)'):(L()?'se debilita':'weakening'));
 if(/\bFILL/.test(s))r.push(L()?'se rellena (sube la presión)':'filling (pressure rising)');if(/INTSF|INTENSIF/.test(s))r.push(L()?'se intensifica':'intensifying');
-return r.join(', ')+'.'}).filter(Boolean);if(!parts.length)return null;
+return r.join(', ')+'.'}).filter(Boolean);
+if(ice){const b=ice[0],sec=(a,z)=>{const i=b.indexOf(a);if(i<0)return 0;const j=z?b.indexOf(z,i):-1;return (b.slice(i,j<0?undefined:j).match(/\d{4}S\s*\d{4,5}W/g)||[]).length};
+const big=sec('TEMPANOS MAYORES','3.'),sm=sec('TEMPANOS MENOR','4.');
+parts.push(L()?`Hielos (información del Servicio de Hidrografía Naval): límite del hielo marino${big?`, ${big} témpanos de más de 10 MN`:''}${sm?`, ${sm} témpanos menores a 10 MN`:''}${/AREA DE TEMPANOS/.test(b)?' y áreas con témpanos':''}. Las posiciones exactas están en el texto original.`:`Ice (from the Naval Hydrographic Service): sea-ice limit${big?`, ${big} icebergs over 10 NM`:''}${sm?`, ${sm} icebergs under 10 NM`:''}${/AREA DE TEMPANOS/.test(b)?' and iceberg areas':''}. Exact positions are in the original text.`)}
+if(!parts.length)return null;
 return `<article class="card wide"><header class="ch"><span class="tag">${L()?'Situación actual (análisis)':'Current situation (analysis)'}</span><h3>${esc(name)}</h3></header><div class="ct">${parts.map(x=>`<p>${esc(x)}</p>`).join('')}${intBox(synInt(t))}${rawBox(t)}</div></article>`}
 
 const KNOWN=new Set();G.forEach(g=>g[1].split(/[\s\/·-]+/).forEach(w=>KNOWN.add(norm(w))));
@@ -394,8 +410,8 @@ if(r<0&&IS(a.d,['N','NNW','NW','WNW','W'])&&IS(b.d,['S','SSW','SW','WSW'])&&f(b)
 if(r>0&&IS(b.d,['NNE','N','NNW','NW'])&&f(b)>f(a))o.push(E?'Rotación horaria hacia el N/NW con viento en aumento: suele anticipar la llegada de un sistema frontal (viento prefrontal).':'Clockwise shift towards N/NW with increasing wind: often ahead of an approaching front (pre-frontal wind).');
 if(f(b)-f(a)>=2)o.push(E?`El viento aumenta ${f(b)-f(a)} grados Beaufort: conviene tomar rizos antes del cambio, no durante.`:`Wind increases by ${f(b)-f(a)} Beaufort forces: reef before the change, not during it.`);
 if(f(a)-f(b)>=2)o.push(E?'El viento afloja con el correr del tiempo.':'Wind eases over time.')}
-const last=ws[ws.length-1];if(last){const F=f(last),plata=/PLATA/.test(name);
-if(plata&&IS(last.d,['SE','ESE','E','SSE'])&&F>=4)o.push(E?'Viento del sudeste sostenido sobre el Río de la Plata: condición de sudestada, el nivel del río puede subir. Revisá la altura prevista en Hidrografía Naval.':'Sustained south-easterly over the Río de la Plata ("sudestada"): the water level may rise. Check the forecast level at the Naval Hydrographic Service.');
+const last=ws[ws.length-1];if(last){const F=Math.max(last.fa,last.fb??last.fa),plata=/PLATA/.test(name);
+if(plata&&ws.some(w=>IS(w.d,['SE','ESE','E','SSE'])&&Math.max(w.fa,w.fb??w.fa)>=4))o.push(E?'Viento del sudeste sostenido sobre el Río de la Plata: condición de sudestada, el nivel del río puede subir. Revisá la altura prevista en Hidrografía Naval.':'Sustained south-easterly over the Río de la Plata ("sudestada"): the water level may rise. Check the forecast level at the Naval Hydrographic Service.');
 if(plata&&IS(last.d,['SW','WSW','W'])&&F>=5)o.push(E?'Viento fuerte del sudoeste u oeste en el Río de la Plata: empuja el agua lejos de la costa argentina y puede producir bajante. Atención al calado al salir o volver a puerto.':'Strong south-westerly or westerly on the Río de la Plata: pushes water away from the Argentine shore and can cause low water. Mind your draft leaving or entering port.');
 if(F>=8)o.push(E?'Fuerza 8 o más: condiciones de temporal.':'Force 8 or more: gale conditions.')}
 if(gust)o.push(E?'Con ráfagas, los picos pueden superar en uno o dos grados Beaufort al viento medio indicado.':'With gusts, peaks can exceed the stated mean wind by one or two Beaufort forces.');
@@ -418,12 +434,13 @@ const one=cl(w[i]);if(TM.has(one))h+=btn(one,one)+esc(w[i].slice(one.length));el
 const rawBox=t=>`<div class="rawh">${L()?'Original (tocá una palabra subrayada)':'Original (tap an underlined word)'}</div><div class="raw" style="margin-top:4px;border-top:0;padding-top:0">${markRaw(t)}</div><div class="tip" role="status"></div>`;
 let last='';
 function report(){const raw=$('#txt').value;try{localStorage.setItem('metarea-txt',raw)}catch(e){}
-const t=norm(raw).replace(/\r/g,'');if(!t.trim()){$('#rep').innerHTML=`<p class="empty">${L()?'Pegá un boletín arriba.':'Paste a bulletin above.'}</p>`;return}
-const re=/([A-Z][A-Z0-9 ,()\/-]{2,70}?):/g;const hs=[];let m;
+const t=norm(raw).replace(/\r/g,'').replace(/^\s*(\d)\s+PARTE\s+(.*)$/gm,(m,n,r)=>`\nPARTE ${n} ${r.replace(/:/g,'H').replace(/\s*:?\s*$/,'')}:`);if(!t.trim()){$('#rep').innerHTML=`<p class="empty">${L()?'Pegá un boletín arriba.':'Paste a bulletin above.'}</p>`;return}
+const re=/([A-Z][A-Z0-9 ,()\/'º°-]{2,90}?):/g;const hs=[];let m;
 while(m=re.exec(t)){if(/(^|[\n.:])\s*$/.test(t.slice(Math.max(0,m.index-3),m.index))||m.index===0)hs.push({n:m[1].trim(),i:m.index,e:m.index+m[0].length});else re.lastIndex=m.index+1}
 const segs=[];if(!hs.length)segs.push({n:L()?'Boletín':'Bulletin',t});else{if(t.slice(0,hs[0].i).trim())segs.push({n:L()?'Encabezado':'Header',t:t.slice(0,hs[0].i)});hs.forEach((h,k)=>segs.push({n:h.n,t:t.slice(h.e,k+1<hs.length?hs[k+1].i:t.length)}))}
-let html='',warn='',syn='',zk=0;const hits=new Map(),unk=new Set();
-segs.forEach(s=>{const tt=s.t.replace(/\s+/g,' ').trim();const isW=/WARNING|AVISO/.test(s.n);if(!tt){if(isW)warn=s.n;return}
+let html='',warn='',syn='',zk=0,par='';const hits=new Map(),unk=new Set();
+segs.forEach(s=>{const tt=s.t.replace(/\s+/g,' ').trim();if(/^AREA\b/.test(s.n))par=s.n.replace(/\s*\(.*$/,'');else if(/^RESTO DEL AREA/.test(s.n)&&par)s.n=par+' · '+s.n;else if(!/^RESTO/.test(s.n))par='';
+if(s.n==='Encabezado'||s.n==='Header'){const d=tt.match(/(\d{2})-(\d{2})-(\d{4}),?\s*(\d{2}):(\d{2})\s*UTC/);const mt=tt.match(/METAREA\s*(\w+)/);if(d){const lo=toLocal(d[1],d[4],d[5]);syn+=`<article class="card wide"><header class="ch"><span class="tag">${L()?'Boletín':'Bulletin'}</span><h3>${esc(mt?'METAREA '+mt[1]:(L()?'Encabezado':'Header'))}</h3></header><div class="ct"><p>${esc(L()?`Emitido el ${d[1]}/${d[2]}/${d[3]} a las ${d[4]}:${d[5]} UTC (= día ${lo.D}, ${lo.T} ${tzl(off())}). Presión en hPa, viento en escala Beaufort.`:`Issued ${d[3]}-${d[2]}-${d[1]} at ${d[4]}:${d[5]} UTC (= day ${lo.D}, ${lo.T} ${tzl(off())}). Pressure in hPa, wind in Beaufort.`)}</p>${rawBox(tt)}</div></article>`;return}}const isW=/WARNING|AVISO/.test(s.n);if(!tt){if(isW)warn=s.n;return}
 (tt.match(/\b[A-Z]{2,}\b/g)||[]).forEach(w=>{if(!KNOWN.has(w))unk.add(w)});
 const isSyn=/SITUACION|SINOPTIC|SYNOPSIS|GENERAL SITUATION/.test(s.n)||(/DEPRESION|DEPRESSION|ANTICICLON|CFNT|FRONT|FRENTE|VAGUADA|TROUGH|DORSAL|RIDGE|\bLOW\b.*HPA/.test(tt)&&!winds(tt).ws.length);
 const w=isW?s.n:warn;warn='';
